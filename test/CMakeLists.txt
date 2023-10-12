@@ -34,7 +34,7 @@ target_link_libraries(
   tests
   PRIVATE solver::solver_warnings
           solver::solver_options
-          solver::sample_library
+          solver::solver_library
           Catch2::Catch2WithMain)
 
 if(WIN32 AND BUILD_SHARED_LIBS)
@@ -66,7 +66,7 @@ target_link_libraries(
   constexpr_tests
   PRIVATE solver::solver_warnings
           solver::solver_options
-          solver::sample_library
+          solver::solver_library
           Catch2::Catch2WithMain)
 
 catch_discover_tests(
@@ -89,7 +89,7 @@ target_link_libraries(
   relaxed_constexpr_tests
   PRIVATE solver::solver_warnings
           solver::solver_options
-          solver::sample_library
+          solver::solver_library
           Catch2::Catch2WithMain)
 target_compile_definitions(relaxed_constexpr_tests PRIVATE -DCATCH_CONFIG_RUNTIME_STATIC_REQUIRE)
 
