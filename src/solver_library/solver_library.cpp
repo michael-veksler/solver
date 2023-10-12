@@ -1,4 +1,4 @@
-#include <solver/sample_library.hpp>
+#include <solver/solver_library.hpp>
 
 int factorial(int input) noexcept
 {
