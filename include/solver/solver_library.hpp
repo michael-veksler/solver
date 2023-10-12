@@ -1,9 +1,9 @@
-#ifndef SAMPLE_LIBRARY_HPP
-#define SAMPLE_LIBRARY_HPP
+#ifndef SOLVER_LIBRARY_HPP
+#define SOLVER_LIBRARY_HPP
 
-#include <solver/sample_library_export.hpp>
+#include <solver/solver_library_export.hpp>
 
-[[nodiscard]] SAMPLE_LIBRARY_EXPORT int factorial(int) noexcept;
+[[nodiscard]] SOLVER_LIBRARY_EXPORT int factorial(int) noexcept;
 
 [[nodiscard]] constexpr int factorial_constexpr(int input) noexcept
 {

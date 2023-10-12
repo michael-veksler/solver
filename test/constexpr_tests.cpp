@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <solver/sample_library.hpp>
+#include <solver/solver_library.hpp>
 
 TEST_CASE("Factorials are computed with constexpr", "[factorial]")
 {
