@@ -48,7 +48,7 @@ endmacro()
 
 macro(solver_enable_clang_tidy target WARNINGS_AS_ERRORS)
 
-  find_program(CLANGTIDY clang-tidy)
+  find_program(CLANGTIDY clang-tidy-15)
   if(CLANGTIDY)
     if(NOT
        CMAKE_CXX_COMPILER_ID
