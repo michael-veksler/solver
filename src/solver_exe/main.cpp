@@ -11,6 +11,10 @@
 #include <ftxui/component/screen_interactive.hpp>// for ScreenInteractive
 #include <spdlog/spdlog.h>
 
+#ifdef _LIBCPP_STD_VER
+static_assert(_LIBCPP_STD_VER == 20);
+#endif
+
 #include <lefticus/tools/non_promoting_ints.hpp>
 
 // This file will be generated automatically when cur_you run the CMake
