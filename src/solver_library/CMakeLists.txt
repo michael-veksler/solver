@@ -1,7 +1,7 @@
 include(GenerateExportHeader)
 
 
-add_library(solver_library solver_library.cpp)
+add_library(solver_library solver_library.cpp trivial_sat.cpp)
 
 
 
