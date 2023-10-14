@@ -99,7 +99,8 @@ TEST_CASE("Domain forward iteration", "[binary_domain]")
 
 static std::vector<bool> get_reverse(binary_domain dom)
 {
-  std::vector ret(std::reverse_iterator{ dom.end() }, std::reverse_iterator{ dom.begin() });
+  std::vector ret(std::reverse_iterator<binary_domain::iterator>{ dom.end() },
+    std::reverse_iterator<binary_domain::iterator>{ dom.begin() });
   return ret;
 }
 
