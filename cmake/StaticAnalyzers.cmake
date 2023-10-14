@@ -47,9 +47,8 @@ macro(solver_enable_cppcheck WARNINGS_AS_ERRORS CPPCHECK_OPTIONS)
 endmacro()
 
 macro(solver_enable_clang_tidy target WARNINGS_AS_ERRORS)
-  get_filename_component(CLANGTIDY_DEFAULT_DIR ${CMAKE_CXX_COMPILER} DIRECTORY)
-
-  find_program(CLANGTIDY clang-tidy PATHS ${CLANGTIDY_DEFAULT_DIR} /bin /usr/bin)
+  find_program(CLANGTIDY clang-tidy PATHS /Users/runner/llvm/bin /bin /usr/bin)
+   
   if(CLANGTIDY)
     if(NOT
        CMAKE_CXX_COMPILER_ID
