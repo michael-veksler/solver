@@ -47,8 +47,21 @@ macro(solver_enable_cppcheck WARNINGS_AS_ERRORS CPPCHECK_OPTIONS)
 endmacro()
 
 macro(solver_enable_clang_tidy target WARNINGS_AS_ERRORS)
-  find_program(CLANGTIDY clang-tidy PATHS /Users/runner/llvm/bin /bin /usr/bin)
-   
+  if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    # Currently, clang-tidy works only on macos with clang, don't set CALGTIDY on anything else 
+    if(
+    CMAKE_CXX_COMPILER_ID
+    MATCHES
+    ".*Clang")
+      find_program(CLANGTIDY clang-tidy)
+    endif()
+  else()
+    find_program(CLANGTIDY clang-tidy)
+  endif()
+
+
+  message(${WARNING_MESSAGE} "clang-tidy requested but executable not found")
+
   if(CLANGTIDY)
     if(NOT
        CMAKE_CXX_COMPILER_ID
