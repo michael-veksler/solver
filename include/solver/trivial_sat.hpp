@@ -33,7 +33,8 @@ public:
   [[nodiscard]] bool get_value(unsigned var) const { return solver::get_value(m_domains[var]); }
 
 private:
-  std::pair<solve_status, uint64_t> solve_recursive(std::vector<binary_domain>::iterator depth, uint64_t num_attempts);
+  [[nodiscard]] std::pair<solve_status, uint64_t> solve_recursive(std::vector<binary_domain>::iterator depth,
+    uint64_t num_attempts) const;
 
   [[nodiscard]] bool has_conflict() const;
 

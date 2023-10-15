@@ -16,8 +16,8 @@ solve_status trivial_sat::solve()
   return status;
 }
 
-std::pair<solve_status, uint64_t> trivial_sat::solve_recursive(std::vector<binary_domain>::iterator depth,
-  uint64_t num_attempts)// NOLINT
+std::pair<solve_status, uint64_t> trivial_sat::solve_recursive(std::vector<binary_domain>::iterator depth,// NOLINT
+  uint64_t num_attempts) const
 {
   if (has_conflict()) {
     if (num_attempts >= m_max_attempts) {
