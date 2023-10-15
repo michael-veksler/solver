@@ -25,26 +25,34 @@ public:
   constexpr void erase(bool value)
   {
     if (value) {
-      assert(m_one);
-      m_one = false;
+      assert(m_one == 1);
+      m_one = 0;
     } else {
-      assert(m_zero);
-      m_zero = false;
+      assert(m_zero == 1);
+      m_zero = 0;
     }
   }
   constexpr void insert(bool value)
   {
     if (value) {
-      m_one = true;
+      m_one = 1;
     } else {
-      m_zero = true;
+      m_zero = 1;
     }
   }
 
   [[nodiscard]] constexpr bool contains(bool value) const { return static_cast<bool>(value ? m_one : m_zero); }
 
-  friend constexpr bool min(binary_domain dom) { return dom.m_zero == 0; }
-  friend constexpr bool max(binary_domain dom) { return dom.m_one == 1; }
+  friend constexpr bool min(binary_domain dom)
+  {
+    assert(!dom.empty());
+    return dom.m_zero == 0;
+  }
+  friend constexpr bool max(binary_domain dom)
+  {
+    assert(!dom.empty());
+    return dom.m_one == 1;
+  }
   friend constexpr bool operator==(binary_domain left, binary_domain right) = default;
 
 private:
@@ -81,10 +89,10 @@ public:
   binary_domain_iterator &operator--()
   {
     assert(m_values_left != m_whole_domain);
-    if (max(m_whole_domain) == max(m_values_left)) {
-      m_values_left.insert(min(m_whole_domain));
-    } else {
+    if (m_values_left.empty()) {
       m_values_left.insert(max(m_whole_domain));
+    } else {
+      m_values_left.insert(min(m_whole_domain));
     }
     return *this;
   }
