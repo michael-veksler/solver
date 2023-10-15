@@ -106,6 +106,10 @@ static std::vector<bool> get_reverse(binary_domain dom)
 
 TEST_CASE("Domain backward iteration", "[binary_domain]")
 {
+  binary_domain::iterator iter;
+  REQUIRE(iter == binary_domain::iterator() );
+  iter = zero.begin();
+  REQUIRE(*iter == false);
   REQUIRE_THAT(get_reverse(zero), Equals(std::vector{ false }));
   REQUIRE_THAT(get_reverse(one), Equals(std::vector{ true }));
   REQUIRE_THAT(get_reverse(universal), Equals(std::vector{ true, false }));
