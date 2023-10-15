@@ -10,7 +10,7 @@
 namespace solver {
 solve_status trivial_sat::solve()
 {
-  uint64_t max_attempts = 0;
+  const uint64_t max_attempts = 0;
   auto [status, num_attempts] = solve_recursive(std::next(m_domains.begin()), max_attempts);
   std::ignore = num_attempts;
   return status;
@@ -29,7 +29,7 @@ std::pair<solve_status, uint64_t> trivial_sat::solve_recursive(std::vector<binar
   for (; depth != m_domains.end(); ++depth) {
     if (depth->is_universal()) {
       state_saver saved_domain(*depth);
-      for (bool value : binary_domain()) {
+      for (const bool value : binary_domain()) {
         *depth = value;
         auto [status, next_num_attempts] = solve_recursive(std::next(depth), num_attempts);
         num_attempts = next_num_attempts;
@@ -54,8 +54,8 @@ bool trivial_sat::has_conflict() const
 bool trivial_sat::has_conflict(const clause &tested) const
 {
   for (unsigned i = 0; i != tested.size(); ++i) {
-    unsigned variable = tested.get_variable(i);
-    bool is_positive = tested.is_positive_literal(i);
+    const unsigned variable = tested.get_variable(i);
+    const bool is_positive = tested.is_positive_literal(i);
     assert(variable < m_domains.size());
     if (m_domains[variable].contains(is_positive)) { return false; }
   }
