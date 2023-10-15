@@ -9,26 +9,25 @@ namespace solver {
  *
  * @tparam ValueType The type of the saved data
  */
-template <class ValueType>
-class state_saver
+template<class ValueType> class state_saver
 {
 public:
-  explicit state_saver(ValueType & state) : m_state(&state), m_original_value(state) {}
+  explicit state_saver(ValueType &state) : m_state(&state), m_original_value(state) {}
   state_saver(const state_saver &) = delete;
   state_saver(state_saver &&) = delete;
-  state_saver& operator=(const state_saver &) = delete;
-  state_saver& operator=(const state_saver &&) = delete;
+  state_saver &operator=(const state_saver &) = delete;
+  state_saver &operator=(const state_saver &&) = delete;
 
   void reset() { m_state = nullptr; }
 
-  ~state_saver() {
-    if (m_state) {
-      *m_state= m_original_value;
-    }
+  ~state_saver()
+  {
+    if (m_state) { *m_state = m_original_value; }
   }
+
 private:
-  ValueType * m_state;
+  ValueType *m_state;
   const ValueType m_original_value;
 };
-}
+}// namespace solver
 #endif

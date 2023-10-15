@@ -9,16 +9,13 @@
 
 namespace solver {
 
-enum class solve_status : int8_t {
-  SAT,
-  UNSAT,
-  UNKNOWN
-};
+enum class solve_status : int8_t { SAT, UNSAT, UNKNOWN };
 
 SOLVER_LIBRARY_EXPORT class trivial_sat
 {
 private:
   static constexpr uint64_t default_max_attempts = static_cast<uint64_t>(1) << 32U;
+
 public:
   SOLVER_LIBRARY_EXPORT class clause;
 
@@ -29,17 +26,14 @@ public:
     m_domains.push_back(domain);
     return static_cast<unsigned>(m_domains.size() - 1);
   }
-  [[nodiscard]] clause & add_clause();
+  [[nodiscard]] clause &add_clause();
 
   solve_status solve();
 
-  [[nodiscard]] bool get_value(unsigned var) const {
-    return solver::get_value(m_domains[var]);
-  }
+  [[nodiscard]] bool get_value(unsigned var) const { return solver::get_value(m_domains[var]); }
 
 private:
-  std::pair<solve_status, uint64_t> solve_recursive(std::vector<binary_domain>::iterator depth,
-                                                    uint64_t num_attempts);
+  std::pair<solve_status, uint64_t> solve_recursive(std::vector<binary_domain>::iterator depth, uint64_t num_attempts);
 
   [[nodiscard]] bool has_conflict() const;
 
@@ -54,7 +48,7 @@ private:
    *
    * That's why, domain index 0 is unused, to make it easier to distinguish positive and negative literals.
    */
-  std::vector<binary_domain> m_domains{binary_domain{}};
+  std::vector<binary_domain> m_domains{ binary_domain{} };
   std::vector<clause> m_clauses;
 };
 
@@ -64,8 +58,9 @@ class trivial_sat::clause
 public:
   clause() = default;
   void reserve(unsigned num_literals) { m_literals.reserve(num_literals); }
-  void add_literal(unsigned var_num, bool is_positive) {
-     m_literals.push_back(is_positive ? static_cast<int>(var_num) : -static_cast<int>(var_num));
+  void add_literal(unsigned var_num, bool is_positive)
+  {
+    m_literals.push_back(is_positive ? static_cast<int>(var_num) : -static_cast<int>(var_num));
   }
   [[nodiscard]] unsigned get_variable(unsigned literal_num) const
   {
@@ -94,10 +89,7 @@ private:
 
 inline trivial_sat::trivial_sat(uint64_t max_attempts) : m_max_attempts(max_attempts) {}
 
-inline trivial_sat::clause & trivial_sat::add_clause()
-{
-  return m_clauses.emplace_back();
-}
+inline trivial_sat::clause &trivial_sat::add_clause() { return m_clauses.emplace_back(); }
 
 }// namespace solver
 
