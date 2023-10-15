@@ -48,7 +48,7 @@ std::pair<solve_status, uint64_t> trivial_sat::solve_recursive(std::vector<binar
 
 bool trivial_sat::has_conflict() const
 {
-  return std::ranges::any_of(m_clauses, [this](const clause &tested) { return has_conflict(tested); });
+  return std::any_of(m_clauses.begin(), m_clauses.end(), [this](const clause &tested) { return has_conflict(tested); });
 }
 
 bool trivial_sat::has_conflict(const clause &tested) const
