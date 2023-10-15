@@ -1,9 +1,8 @@
 include(GenerateExportHeader)
 
+file(GLOB solver_library_files "*.cpp")
 
-add_library(solver_library solver_library.cpp)
-
-
+add_library(solver_library ${solver_library_files})
 
 add_library(solver::solver_library ALIAS solver_library)
 

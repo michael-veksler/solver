@@ -16,6 +16,13 @@ public:
   constexpr binary_domain() = default;
   using iterator = binary_domain_iterator;
   explicit constexpr binary_domain(bool value) : m_zero(!value), m_one(value) {}
+  constexpr binary_domain(const binary_domain & other) = default;
+  constexpr binary_domain & operator=(const binary_domain & other) = default;
+  constexpr binary_domain & operator=(bool value)
+  {
+    return *this = binary_domain(value);
+  }
+
   [[nodiscard]] constexpr bool is_universal() const { return m_one && m_zero; }
   [[nodiscard]] constexpr bool empty() const { return !m_one && !m_zero; }
   [[nodiscard]] constexpr bool is_singleton() const { return m_one != m_zero; }
@@ -59,6 +66,11 @@ private:
   uint8_t m_zero : 1 = 1;
   uint8_t m_one : 1 = 1;
 };
+
+[[nodiscard]] inline constexpr bool get_value(const binary_domain & domain)
+{
+  return min(domain);
+}
 
 
 class binary_domain_iterator
