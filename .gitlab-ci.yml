@@ -5,6 +5,7 @@ image: ubuntu:latest
 
 stages:
   - test
+  - fuzz
 
 .setup_linux: &setup_linux |
   DEBIAN_FRONTEND=noninteractive
