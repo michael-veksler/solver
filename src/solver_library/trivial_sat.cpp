@@ -27,21 +27,20 @@ std::pair<solve_status, uint64_t> trivial_sat::solve_recursive(std::vector<binar
     }
   }
   for (; depth != m_domains.end(); ++depth) {
-    if (depth->is_universal()) {
-      state_saver saved_domain(*depth);
-      for (const bool value : binary_domain()) {
-        *depth = value;
-        auto [status, next_num_attempts] = solve_recursive(std::next(depth), num_attempts);
-        num_attempts = next_num_attempts;
-        if (status == solve_status::SAT) {
-          saved_domain.reset();
-          return { solve_status::SAT, num_attempts };
-        } else if (status == solve_status::UNKNOWN) {
-          return { solve_status::UNKNOWN, num_attempts };
-        }
-      }
-      return { solve_status::UNSAT, num_attempts };
+    if (!depth->is_universal()) { continue; }
+    state_saver saved_domain(*depth);
+    for (const bool value : binary_domain()) {
+    *depth = value;
+    auto [status, next_num_attempts] = solve_recursive(std::next(depth), num_attempts);
+    num_attempts = next_num_attempts;
+    if (status == solve_status::SAT) {
+        saved_domain.reset();
+        return { solve_status::SAT, num_attempts };
+    } else if (status == solve_status::UNKNOWN) {
+        return { solve_status::UNKNOWN, num_attempts };
     }
+    }
+    return { solve_status::UNSAT, num_attempts };
   }
   return { solve_status::SAT, num_attempts };
 }

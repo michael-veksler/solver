@@ -8,6 +8,14 @@
 using namespace solver;
 
 
+TEST_CASE("Initially set problem", "[trivial_sat]")
+{
+  trivial_sat sat;
+  const unsigned var = sat.add_var(binary_domain(true));
+  REQUIRE(sat.solve() == solve_status::SAT);
+  REQUIRE(sat.get_value(var));
+}
+
 TEST_CASE("Trivial tiny problem false", "[trivial_sat]")
 {
   trivial_sat sat;
