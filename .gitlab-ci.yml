@@ -1,11 +1,7 @@
-include:
-  - template: Coverage-Fuzzing.gitlab-ci.yml
-
 image: ubuntu:latest
 
 stages:
   - test
-  - fuzz
 
 .setup_linux: &setup_linux |
   DEBIAN_FRONTEND=noninteractive
@@ -34,16 +30,6 @@ stages:
   cmake -S . -B ./build -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo
   cmake --build ./build --config RelWithDebInfo
 
-my_fuzz_target:
-  extends: .fuzz_base
-  script:
-    - apt-get update -qq && apt-get install -y -qq git make clang cmake
-    - export CC=`which clang`
-    - export CXX=`which clang++`
-    - mkdir -p build && cd build
-    - cmake .. -DCMAKE_BUILD_TYPE=AddressSanitizer && make && cd ..
-    - ./gitlab-cov-fuzz run --regression=$REGRESSION -- ./build/fuzz/fuzz_test_string
-
 test_linux_llvm:
   stage: test
   variables:
@@ -52,7 +38,6 @@ test_linux_llvm:
     - *setup_linux
     - *setup_cpp
     - *test
-    - *my_fuzz_target
 
 test_linux_gcc:
   stage: test
@@ -62,4 +47,3 @@ test_linux_gcc:
     - *setup_linux
     - *setup_cpp
     - *test
-
