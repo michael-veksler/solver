@@ -77,12 +77,12 @@ struct all_different_problem
     std::generate_n(std::back_inserter(ret.vars), num_vals, [this] { return solver.add_var(); });
     return ret;
   }
-  void constrain_at_least_one(one_hot_int &integer_value)
+  void constrain_at_least_one(const one_hot_int &integer_value)
   {
     trivial_sat::clause &at_least_one = solver.add_clause();
     for (const unsigned var : integer_value.vars) { at_least_one.add_literal(var, true); }
   }
-  void constrain_at_most_one(one_hot_int &integer_value)
+  void constrain_at_most_one(const one_hot_int &integer_value)
   {
     for (unsigned i = 0; i != integer_value.vars.size(); ++i) {
       for (unsigned j = i + 1; j != integer_value.vars.size(); ++j) {
