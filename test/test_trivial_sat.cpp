@@ -58,6 +58,22 @@ struct one_hot_int
 {
   std::vector<unsigned> vars;
 };
+
+/**
+ * @brief A container and constructor for all_different problem
+ *
+ * 1. Integers are emulated using the one-hot representation, i.e., a vector X of N binary-variables,
+ *    where X[i]==true indicates that we represent the integer \p i. Note that exactly one bit of this X vector
+ *    is true.
+ * 2. Each such one-hot integer has constraints to make it a valid integer:
+ *    - There is at least one bit set to true.
+ *    - There is at most one bit set to true.
+ * 3. We have N integers represented using this one-hot representation.
+ * 4. We add constraints to make sure that every integer is different from all others.
+ *
+ * Note: It is known that CDCL solvers, that use only clause-resolution rule in its conflict analysis,
+ *       require exponential time to reach UNSAT if there are more integers than legal values.
+ */
 struct all_different_problem
 {
   explicit all_different_problem(unsigned num_ints, unsigned num_vals)
@@ -140,4 +156,38 @@ TEST_CASE("all_diff problem", "[trivial_sat]")// NOLINT
     }
     REQUIRE(found_bit_in_value);
   }
+}
+
+namespace {
+  struct all_literal_combinations
+  {
+    static constexpr unsigned NUM_VARS = 4;
+
+    explicit all_literal_combinations(unsigned max_attempts) : solver(max_attempts) {
+      std::generate_n(std::back_inserter(vars), NUM_VARS, [this]{ return solver.add_var(); });
+      for (uint32_t literal_bits = 0; (literal_bits >> NUM_VARS) == 0; literal_bits++) {
+        add_all_literals(literal_bits);
+      }
+
+    }
+
+    void add_all_literals(uint32_t literal_bits) {
+      trivial_sat::clause & clause = solver.add_clause();
+      for (unsigned literal_index=0; literal_index != NUM_VARS; ++literal_index) {
+        const bool literal = ((literal_bits >> literal_index) & 1U) == 1;
+        clause.add_literal(vars[literal_index],  literal);
+      }
+    }
+
+    std::vector<unsigned> vars;
+    trivial_sat solver;
+  };
+}
+
+TEST_CASE("max attempts", "[trivial_sat]")
+{
+  all_literal_combinations expected_unsat(1U << all_literal_combinations::NUM_VARS);
+  all_literal_combinations expected_unknown((1U << all_literal_combinations::NUM_VARS)-1);
+  REQUIRE(expected_unsat.solver.solve() == solve_status::UNSAT);
+  REQUIRE(expected_unknown.solver.solve() == solve_status::UNKNOWN);
 }

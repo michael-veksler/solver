@@ -10,8 +10,8 @@
 namespace solver {
 solve_status trivial_sat::solve()
 {
-  const uint64_t max_attempts = 0;
-  auto [status, num_attempts] = solve_recursive(std::next(m_domains.begin()), max_attempts);
+  const uint64_t initial_num_attempts = 0;
+  auto [status, num_attempts] = solve_recursive(std::next(m_domains.begin()), initial_num_attempts);
   std::ignore = num_attempts;
   return status;
 }
