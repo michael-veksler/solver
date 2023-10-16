@@ -11,7 +11,7 @@ using namespace solver;
 TEST_CASE("Trivial tiny problem false", "[trivial_sat]")
 {
   trivial_sat sat;
-  unsigned var = sat.add_var();
+  const unsigned var = sat.add_var();
   sat.add_clause().add_literal(var, false);
   REQUIRE(sat.solve() == solve_status::SAT);
   REQUIRE(!sat.get_value(var));
@@ -20,7 +20,7 @@ TEST_CASE("Trivial tiny problem false", "[trivial_sat]")
 TEST_CASE("Trivial tiny problem true", "[trivial_sat]")
 {
   trivial_sat sat;
-  unsigned var = sat.add_var();
+  const unsigned var = sat.add_var();
   sat.add_clause().add_literal(var, true);
   REQUIRE(sat.solve() == solve_status::SAT);
   REQUIRE(sat.get_value(var));
@@ -29,7 +29,7 @@ TEST_CASE("Trivial tiny problem true", "[trivial_sat]")
 TEST_CASE("Trivial tiny problem unsat", "[trivial_sat]")
 {
   trivial_sat sat;
-  unsigned var = sat.add_var();
+  const unsigned var = sat.add_var();
   sat.add_clause().add_literal(var, false);
   sat.add_clause().add_literal(var, true);
   REQUIRE(sat.solve() == solve_status::UNSAT);
@@ -38,9 +38,9 @@ TEST_CASE("Trivial tiny problem unsat", "[trivial_sat]")
 TEST_CASE("Trivial implication problem", "[trivial_sat]")
 {
   trivial_sat sat;
-  unsigned var1 = sat.add_var();
-  unsigned var2 = sat.add_var();
-  unsigned var3 = sat.add_var();
+  const unsigned var1 = sat.add_var();
+  const unsigned var2 = sat.add_var();
+  const unsigned var3 = sat.add_var();
   trivial_sat::clause &implies1_2 = sat.add_clause();
   implies1_2.add_literal(var1, false);
   implies1_2.add_literal(var2, true);
@@ -80,7 +80,7 @@ struct all_different_problem
   void constrain_at_least_one(one_hot_int &integer_value)
   {
     trivial_sat::clause &at_least_one = solver.add_clause();
-    for (unsigned var : integer_value.vars) { at_least_one.add_literal(var, true); }
+    for (const unsigned var : integer_value.vars) { at_least_one.add_literal(var, true); }
   }
   void constrain_at_most_one(one_hot_int &integer_value)
   {
@@ -131,7 +131,7 @@ TEST_CASE("all_diff problem", "[trivial_sat]")// NOLINT
   for (one_hot_int &integer_value : problem.integer_values) {
     bool found_bit_in_value = false;
     for (unsigned i = 0; i != integer_value.vars.size(); ++i) {
-      bool bit_value = problem.solver.get_value(integer_value.vars[i]);
+      const bool bit_value = problem.solver.get_value(integer_value.vars[i]);
       REQUIRE_FALSE((found_bit[i] && bit_value));
       found_bit[i] = bit_value || found_bit[i];
 
