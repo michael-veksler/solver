@@ -187,7 +187,7 @@ jobs:
           export CXX=`which clang++`
           mkdir -p build && cd build
           cmake .. -DCMAKE_BUILD_TYPE=AddressSanitizer && make && cd ..
-          wget "https://gitlab.com/gitlab-org/security-products/analyzers/gitlab-cov-fuzz/-/raw/v3/binaries/gitlab-cov-fuzz_Linux_x86_64?ref_type=heads&inline=false"
+          curl "https://gitlab.com/gitlab-org/security-products/analyzers/gitlab-cov-fuzz/-/raw/v3/binaries/gitlab-cov-fuzz_Linux_x86_64?ref_type=heads&inline=false" > gitlab-cov-fuzz_Linux_x86_64
           chmod +x gitlab-cov-fuzz_Linux_x86_64
           ./gitlab-cov-fuzz_Linux_x86_64 run --regression=$REGRESSION -- ./build/fuzz_test/fuzz_tester
 
