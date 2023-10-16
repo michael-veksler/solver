@@ -3,11 +3,14 @@
 
 find_package(fmt)
 
-add_executable(fuzz_tester fuzz_tester.cpp)
+file(GLOB fuzz_test_source_files "*.cpp")
+
+add_executable(fuzz_tester ${fuzz_test_source_files})
 target_link_libraries(
   fuzz_tester
   PRIVATE solver_options
           solver_warnings
+          solver::solver_library
           fmt::fmt
           -coverage
           -fsanitize=fuzzer)
