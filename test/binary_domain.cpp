@@ -47,7 +47,7 @@ TEST_CASE("Zero domain", "[binary_domain]")
   REQUIRE(zero.is_singleton());
   REQUIRE(!zero.empty());
   REQUIRE((zero.contains(false) && !zero.contains(true)));
-  REQUIRE((min(zero) == false && max(zero) == false));
+  REQUIRE((min(zero) == false && max(zero) == false && !get_value(zero)));
 }
 
 TEST_CASE("One domain", "[binary_domain]")
@@ -56,7 +56,7 @@ TEST_CASE("One domain", "[binary_domain]")
   REQUIRE(one.is_singleton());
   REQUIRE(!one.empty());
   REQUIRE((!one.contains(false) && one.contains(true)));
-  REQUIRE((min(one) == true && max(one) == true));
+  REQUIRE((min(one) == true && max(one) == true && get_value(one)));
 }
 
 TEST_CASE("Domain equality", "[binary_domain]")
@@ -113,4 +113,16 @@ TEST_CASE("Domain backward iteration", "[binary_domain]")
   REQUIRE_THAT(get_reverse(zero), Equals(std::vector{ false }));
   REQUIRE_THAT(get_reverse(one), Equals(std::vector{ true }));
   REQUIRE_THAT(get_reverse(universal), Equals(std::vector{ true, false }));
+}
+
+TEST_CASE("Domain assignment", "[binary_domain]")
+{
+  REQUIRE((zero == binary_domain(false) && one == binary_domain(true)));
+  binary_domain domain;
+  domain = false;
+  REQUIRE(domain == zero);
+  domain = true;
+  REQUIRE(domain == one);
+  domain = false;
+  REQUIRE(domain == zero);
 }
