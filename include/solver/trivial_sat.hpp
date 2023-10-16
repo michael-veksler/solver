@@ -67,7 +67,7 @@ public:
   {
     assert(literal_num < m_literals.size());
     int literal = m_literals[literal_num];
-    return literal > 0 ? static_cast<unsigned>(literal) : -static_cast<unsigned>(literal);
+    return literal > 0 ? static_cast<unsigned>(literal) : static_cast<unsigned>(-literal);
   }
   [[nodiscard]] bool is_positive_literal(unsigned literal_num) const
   {
