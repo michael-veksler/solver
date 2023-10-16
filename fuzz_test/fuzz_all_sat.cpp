@@ -94,7 +94,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
     add_clause(solver, literals);
   }
 
-  solve_status stat = solver.solve();
+  const solve_status stat = solver.solve();
   if (stat == solve_status::SAT) { validate_solution(solver, clauses); }
 
   return 0;
