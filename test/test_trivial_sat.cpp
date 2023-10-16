@@ -64,7 +64,7 @@ struct all_different_problem
   {
     integer_values.reserve(num_ints);
     std::generate_n(std::back_inserter(integer_values), num_ints, [num_vals, this] { return make_one_hot(num_vals); });
-    for (one_hot_int &value : integer_values) {
+    for (const one_hot_int &value : integer_values) {
       constrain_at_least_one(value);
       constrain_at_most_one(value);
     }
