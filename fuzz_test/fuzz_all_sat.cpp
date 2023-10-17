@@ -6,21 +6,6 @@
 #include <span>
 
 using namespace solver;
-namespace {
-struct literal_type
-{
-  bool is_positive = false;
-  unsigned variable = 1;
-};
-}// namespace
-
-static std::vector<unsigned> create_variables(trivial_sat &solver, unsigned num_vars)
-{
-  std::vector<unsigned> variables;
-  variables.reserve(num_vars);
-  std::generate_n(std::back_inserter(variables), num_vars, [&solver] { return solver.add_var(); });
-  return variables;
-}
 
 template<typename T> static std::optional<T> get(std::span<const uint8_t> &data_span)
 {
