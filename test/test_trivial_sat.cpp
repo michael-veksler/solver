@@ -46,19 +46,18 @@ TEST_CASE("Trivial tiny problem unsat", "[trivial_sat]")
 TEST_CASE("Trivial implication problem", "[trivial_sat]")
 {
   trivial_sat sat;
-  const trivial_sat::variable_handle var1 = sat.add_var();
-  const trivial_sat::variable_handle var2 = sat.add_var();
-  const trivial_sat::variable_handle var3 = sat.add_var();
+  constexpr unsigned NUM_VARS = 3;
+  const std::vector<trivial_sat::variable_handle> vars = create_variables(sat, NUM_VARS);
+  trivial_sat::clause &implies0_1 = sat.add_clause();
+  implies0_1.add_literal(vars[0], false);
+  implies0_1.add_literal(vars[1], true);
   trivial_sat::clause &implies1_2 = sat.add_clause();
-  implies1_2.add_literal(var1, false);
-  implies1_2.add_literal(var2, true);
-  trivial_sat::clause &implies2_3 = sat.add_clause();
-  implies2_3.add_literal(var2, false);
-  implies2_3.add_literal(var3, true);
+  implies1_2.add_literal(vars[1], false);
+  implies1_2.add_literal(vars[2], true);
 
-  sat.add_clause().add_literal(var1, true);
+  sat.add_clause().add_literal(vars[0], true);
   REQUIRE(sat.solve() == solve_status::SAT);
-  REQUIRE((sat.get_value(var1) && sat.get_value(var2) && sat.get_value(var3)));
+  REQUIRE((sat.get_value(vars[0]) && sat.get_value(vars[1]) && sat.get_value(vars[2])));
 }
 
 namespace {
@@ -96,10 +95,7 @@ struct all_different_problem
   }
   one_hot_int make_one_hot(unsigned num_vals)
   {
-    one_hot_int ret;
-    ret.vars.reserve(num_vals);
-    std::generate_n(std::back_inserter(ret.vars), num_vals, [this] { return solver.add_var(); });
-    return ret;
+    return {.vars = create_variables(solver, num_vals) };
   }
   void constrain_at_least_one(const one_hot_int &integer_value)
   {
@@ -167,30 +163,30 @@ TEST_CASE("all_diff problem", "[trivial_sat]")// NOLINT
 }
 
 namespace {
-  struct all_literal_combinations
-  {
-    static constexpr unsigned NUM_VARS = 4;
+struct all_literal_combinations
+{
+  static constexpr unsigned NUM_VARS = 4;
 
-    explicit all_literal_combinations(unsigned max_attempts) : solver(max_attempts) {
-      std::generate_n(std::back_inserter(vars), NUM_VARS, [this]{ return solver.add_var(); });
-      for (uint32_t literal_bits = 0; (literal_bits >> NUM_VARS) == 0; literal_bits++) {
-        add_all_literals(literal_bits);
-      }
-
+  explicit all_literal_combinations(unsigned max_attempts) : solver(max_attempts),
+    vars(create_variables(solver, NUM_VARS)) {
+    for (uint32_t literal_bits = 0; (literal_bits >> NUM_VARS) == 0; literal_bits++) {
+      add_all_literals(literal_bits);
     }
 
-    void add_all_literals(uint32_t literal_bits) {
-      trivial_sat::clause & clause = solver.add_clause();
-      for (unsigned literal_index=0; literal_index != NUM_VARS; ++literal_index) {
-        const bool literal = ((literal_bits >> literal_index) & 1U) == 1;
-        clause.add_literal(vars[literal_index],  literal);
-      }
-    }
+  }
 
-    std::vector<trivial_sat::variable_handle> vars;
-    trivial_sat solver;
-  };
-  }// namespace
+  void add_all_literals(uint32_t literal_bits) {
+    trivial_sat::clause & clause = solver.add_clause();
+    for (unsigned literal_index=0; literal_index != NUM_VARS; ++literal_index) {
+      const bool literal = ((literal_bits >> literal_index) & 1U) == 1;
+      clause.add_literal(vars[literal_index],  literal);
+    }
+  }
+
+  trivial_sat solver;
+  std::vector<trivial_sat::variable_handle> vars;
+};
+}// namespace
 
 TEST_CASE("max attempts", "[trivial_sat]")
 {
