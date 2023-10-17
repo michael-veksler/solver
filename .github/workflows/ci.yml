@@ -210,6 +210,6 @@ jobs:
       - name: Publish to codecov
         uses: codecov/codecov-action@v3
         with:
-          flags: ${{ runner.os }}
-          name: ${{ runner.os }}-coverage
+          flags: ${{matrix.os}}-${{matrix.compiler}}-${{matrix.build_type}}
+          name: ${{matrix.os}}-${{matrix.compiler}}-${{matrix.build_type}}-coverage
           files: ./build/${{matrix.os}}-${{matrix.compiler}}-${{matrix.build_type}}-coverage.xml
