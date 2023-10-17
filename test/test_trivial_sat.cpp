@@ -11,7 +11,7 @@ using namespace solver;
 TEST_CASE("Initially set problem", "[trivial_sat]")
 {
   trivial_sat sat;
-  const unsigned var = sat.add_var(binary_domain(true));
+  const trivial_sat::variable_handle var = sat.add_var(binary_domain(true));
   REQUIRE(sat.solve() == solve_status::SAT);
   REQUIRE(sat.get_value(var));
 }
@@ -19,7 +19,7 @@ TEST_CASE("Initially set problem", "[trivial_sat]")
 TEST_CASE("Trivial tiny problem false", "[trivial_sat]")
 {
   trivial_sat sat;
-  const unsigned var = sat.add_var();
+  const trivial_sat::variable_handle var = sat.add_var();
   sat.add_clause().add_literal(var, false);
   REQUIRE(sat.solve() == solve_status::SAT);
   REQUIRE(!sat.get_value(var));
@@ -28,7 +28,7 @@ TEST_CASE("Trivial tiny problem false", "[trivial_sat]")
 TEST_CASE("Trivial tiny problem true", "[trivial_sat]")
 {
   trivial_sat sat;
-  const unsigned var = sat.add_var();
+  const trivial_sat::variable_handle var = sat.add_var();
   sat.add_clause().add_literal(var, true);
   REQUIRE(sat.solve() == solve_status::SAT);
   REQUIRE(sat.get_value(var));
@@ -37,7 +37,7 @@ TEST_CASE("Trivial tiny problem true", "[trivial_sat]")
 TEST_CASE("Trivial tiny problem unsat", "[trivial_sat]")
 {
   trivial_sat sat;
-  const unsigned var = sat.add_var();
+  const trivial_sat::variable_handle var = sat.add_var();
   sat.add_clause().add_literal(var, false);
   sat.add_clause().add_literal(var, true);
   REQUIRE(sat.solve() == solve_status::UNSAT);
@@ -46,9 +46,9 @@ TEST_CASE("Trivial tiny problem unsat", "[trivial_sat]")
 TEST_CASE("Trivial implication problem", "[trivial_sat]")
 {
   trivial_sat sat;
-  const unsigned var1 = sat.add_var();
-  const unsigned var2 = sat.add_var();
-  const unsigned var3 = sat.add_var();
+  const trivial_sat::variable_handle var1 = sat.add_var();
+  const trivial_sat::variable_handle var2 = sat.add_var();
+  const trivial_sat::variable_handle var3 = sat.add_var();
   trivial_sat::clause &implies1_2 = sat.add_clause();
   implies1_2.add_literal(var1, false);
   implies1_2.add_literal(var2, true);
@@ -64,7 +64,7 @@ TEST_CASE("Trivial implication problem", "[trivial_sat]")
 namespace {
 struct one_hot_int
 {
-  std::vector<unsigned> vars;
+  std::vector<trivial_sat::variable_handle> vars;
 };
 
 /**
@@ -104,7 +104,7 @@ struct all_different_problem
   void constrain_at_least_one(const one_hot_int &integer_value)
   {
     trivial_sat::clause &at_least_one = solver.add_clause();
-    for (const unsigned var : integer_value.vars) { at_least_one.add_literal(var, true); }
+    for (const trivial_sat::variable_handle var : integer_value.vars) { at_least_one.add_literal(var, true); }
   }
   void constrain_at_most_one(const one_hot_int &integer_value)
   {
@@ -115,7 +115,7 @@ struct all_different_problem
     }
   }
 
-  void add_any_false(unsigned left, unsigned right)
+  void add_any_false(trivial_sat::variable_handle left, trivial_sat::variable_handle right)
   {
     trivial_sat::clause &any_false = solver.add_clause();
     any_false.add_literal(left, false);
@@ -187,10 +187,10 @@ namespace {
       }
     }
 
-    std::vector<unsigned> vars;
+    std::vector<trivial_sat::variable_handle> vars;
     trivial_sat solver;
   };
-}
+  }// namespace
 
 TEST_CASE("max attempts", "[trivial_sat]")
 {

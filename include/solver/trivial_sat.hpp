@@ -2,6 +2,7 @@
 #define TRIVIAL_SAT_HPP
 
 #include "binary_domain.hpp"
+#include "sat_types.hpp"
 #include <cassert>
 #include <cinttypes>
 #include <solver/solver_library_export.hpp>
@@ -9,8 +10,14 @@
 
 namespace solver {
 
-enum class solve_status : int8_t { SAT, UNSAT, UNKNOWN };
-
+/**
+ * @brief A SAT solver with trivial search algorithm.
+ *
+ * This solver uses a simple search algorithm with no propagation or failure analysis.
+ * It is intended only to be a testing-reference to be compared with a more efficient
+ * solver.
+ *
+ */
 SOLVER_LIBRARY_EXPORT class trivial_sat
 {
 private:
@@ -18,19 +25,19 @@ private:
 
 public:
   SOLVER_LIBRARY_EXPORT class clause;
-
+  using variable_handle = unsigned;
   SOLVER_LIBRARY_EXPORT explicit trivial_sat(uint64_t max_attempts = default_max_attempts);
 
-  [[nodiscard]] unsigned add_var(binary_domain domain = {})
+  [[nodiscard]] variable_handle add_var(binary_domain domain = {})
   {
     m_domains.push_back(domain);
-    return static_cast<unsigned>(m_domains.size() - 1);
+    return static_cast<variable_handle>(m_domains.size() - 1);
   }
   [[nodiscard]] clause &add_clause();
 
   solve_status solve();
 
-  [[nodiscard]] bool get_value(unsigned var) const { return solver::get_value(m_domains[var]); }
+  [[nodiscard]] bool get_value(variable_handle var) const { return solver::get_value(m_domains[var]); }
 
 private:
   [[nodiscard]] std::pair<solve_status, uint64_t> solve_recursive(std::vector<binary_domain>::iterator depth,
@@ -59,15 +66,15 @@ class trivial_sat::clause
 public:
   clause() = default;
   void reserve(unsigned num_literals) { m_literals.reserve(num_literals); }
-  void add_literal(unsigned var_num, bool is_positive)
+  void add_literal(variable_handle var_num, bool is_positive)
   {
     m_literals.push_back(is_positive ? static_cast<int>(var_num) : -static_cast<int>(var_num));
   }
-  [[nodiscard]] unsigned get_variable(unsigned literal_num) const
+  [[nodiscard]] variable_handle get_variable(unsigned literal_num) const
   {
     assert(literal_num < m_literals.size());
     int literal = m_literals[literal_num];
-    return literal > 0 ? static_cast<unsigned>(literal) : static_cast<unsigned>(-literal);
+    return literal > 0 ? static_cast<variable_handle>(literal) : static_cast<variable_handle>(-literal);
   }
   [[nodiscard]] bool is_positive_literal(unsigned literal_num) const
   {
@@ -91,6 +98,15 @@ private:
 inline trivial_sat::trivial_sat(uint64_t max_attempts) : m_max_attempts(max_attempts) {}
 
 inline trivial_sat::clause &trivial_sat::add_clause() { return m_clauses.emplace_back(); }
+
+/**
+ * @brief Create a variables for the solver
+ *
+ * @param solver  The solver to work on
+ * @param num_vars  The number of variables to create.
+ * @return The created variables
+ */
+std::vector<trivial_sat::variable_handle> create_variables(trivial_sat &solver, unsigned num_vars);
 
 }// namespace solver
 

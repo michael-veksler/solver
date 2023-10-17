@@ -8,6 +8,16 @@
 #include <tuple>
 
 namespace solver {
+
+std::vector<trivial_sat::variable_handle> create_variables(trivial_sat &solver, unsigned num_vars)
+{
+  std::vector<trivial_sat::variable_handle> variables;
+  variables.reserve(num_vars);
+  std::generate_n(std::back_inserter(variables), num_vars, [&solver] { return solver.add_var(); });
+  return variables;
+}
+
+
 solve_status trivial_sat::solve()
 {
   const uint64_t initial_num_attempts = 0;
