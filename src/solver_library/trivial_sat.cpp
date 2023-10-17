@@ -65,7 +65,7 @@ bool trivial_sat::has_conflict(const clause &tested) const
   for (unsigned i = 0; i != tested.size(); ++i) {
     const unsigned variable = tested.get_variable(i);
     const bool is_positive = tested.is_positive_literal(i);
-    assert(variable < m_domains.size());
+    assert(variable < m_domains.size()); // NOLINT
     if (m_domains[variable].contains(is_positive)) { return false; }
   }
   return true;

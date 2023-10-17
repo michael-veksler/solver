@@ -72,13 +72,13 @@ public:
   }
   [[nodiscard]] variable_handle get_variable(unsigned literal_num) const
   {
-    assert(literal_num < m_literals.size());
+    assert(literal_num < m_literals.size()); // NOLINT
     int literal = m_literals[literal_num];
     return literal > 0 ? static_cast<variable_handle>(literal) : static_cast<variable_handle>(-literal);
   }
   [[nodiscard]] bool is_positive_literal(unsigned literal_num) const
   {
-    assert(literal_num < m_literals.size());
+    assert(literal_num < m_literals.size()); // NOLINT
     return m_literals[literal_num] > 0;
   }
   [[nodiscard]] size_t size() const { return m_literals.size(); }

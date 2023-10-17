@@ -8,7 +8,7 @@
 using namespace solver;
 
 
-TEST_CASE("Initially set problem", "[trivial_sat]")
+TEST_CASE("Initially set problem", "[trivial_sat]") // NOLINT
 {
   trivial_sat sat;
   const trivial_sat::variable_handle var = sat.add_var(binary_domain(true));
