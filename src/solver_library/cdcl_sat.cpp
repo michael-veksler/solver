@@ -183,9 +183,9 @@ solve_status cdcl_sat::clause::literal_state(const cdcl_sat &solver, literal_ind
 solve_status cdcl_sat::clause::initial_propagate(cdcl_sat &solver, clause_handle this_clause)
 {
   m_watched_literals = { 0, size() - 1 };
-  m_watched_literals[0] = linear_find_free_literal(solver, { 0U, m_literals.size() });
+  m_watched_literals[0] = linear_find_free_literal(solver, { 0U, static_cast<literal_index_t>(m_literals.size()) });
   if (m_watched_literals[0] == m_literals.size()) { return solve_status::UNSAT; }
-  m_watched_literals[1] = linear_find_free_literal(solver, { m_watched_literals[0] + 1, m_literals.size() });
+  m_watched_literals[1] = linear_find_free_literal(solver, { m_watched_literals[0] + 1, static_cast<literal_index_t>(m_literals.size()) });
   if (m_watched_literals[1] == m_literals.size()) { return unit_propagate(solver, m_watched_literals[0]); }
   for (auto watch : m_watched_literals) {
     solver.watch_value_removal(this_clause, get_variable(watch), is_positive_literal(watch));

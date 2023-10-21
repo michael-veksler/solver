@@ -5,9 +5,6 @@
 #include <algorithm>
 #include <catch2/catch_test_macros.hpp>
 #include <functional>
-#include <spdlog/cfg/env.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
-#include <spdlog/spdlog.h>
 
 using namespace solver;
 
