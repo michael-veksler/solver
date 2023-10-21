@@ -3,8 +3,6 @@
 #include <solver/cdcl_sat.hpp>
 #include <solver/state_saver.hpp>
 
-#include "spdlog/spdlog.h"
-
 #include <algorithm>
 #include <cstdint>
 #include <optional>
@@ -12,15 +10,16 @@
 #include <stdexcept>
 #include <tuple>
 
-namespace solver {
-
 // #define ENABLE_LOG_CDCL_SAT
 
 #ifdef ENABLE_LOG_CDCL_SAT
+#include "spdlog/spdlog.h"
 #define LOG_CDCL_SAT_INFO spdlog::info
 #else
 #define LOG_CDCL_SAT_INFO(...)
 #endif
+
+namespace solver {
 
 std::vector<cdcl_sat::variable_handle> create_variables(cdcl_sat &solver, unsigned num_vars)
 {
