@@ -14,7 +14,7 @@
 
 namespace solver {
 
-#define ENABLE_LOG_CDCL_SAT
+// #define ENABLE_LOG_CDCL_SAT
 
 #ifdef ENABLE_LOG_CDCL_SAT
 #define LOG_CDCL_SAT_INFO spdlog::info
@@ -45,7 +45,7 @@ void cdcl_sat::set_domain(variable_handle var, binary_domain domain)
 
 solve_status cdcl_sat::solve()
 {
-  state_saver inside_solve_saver(m_inside_solve);
+  const state_saver inside_solve_saver(m_inside_solve);
   m_inside_solve = true;
   if (!initial_propagate()) { return solve_status::UNSAT; }
   unsigned backtracks = 0;
