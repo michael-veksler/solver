@@ -195,7 +195,7 @@ solve_status cdcl_sat::clause::initial_propagate(cdcl_sat &solver, clause_handle
   return solve_status::UNKNOWN;
 }
 
-auto cdcl_sat::clause::find_different_watch(cdcl_sat &solver, unsigned watch_index) const -> literal_index_t
+auto cdcl_sat::clause::find_different_watch(const cdcl_sat &solver, unsigned watch_index) const -> literal_index_t
 {
   const literal_index_t watched_literal = m_watched_literals.at(watch_index);
   const literal_index_t other_watched_literal = m_watched_literals.at(1 - watch_index);
@@ -266,7 +266,7 @@ solve_status cdcl_sat::clause::unit_propagate(cdcl_sat &solver, literal_index_t 
 void cdcl_sat::backtrack()
 {
   assert(get_level() > 0);
-  variable_handle var = m_chosen_var_by_order.back();
+  const variable_handle var = m_chosen_var_by_order.back();
   LOG_CDCL_SAT_INFO("Backtrack level{}: reset from variable: {} = false", m_chosen_var_by_order.size(), var);
   m_chosen_var_by_order.pop_back();
   while (!m_changed_var_by_order.empty() && m_changed_var_by_order.back() != var) {

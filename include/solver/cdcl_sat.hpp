@@ -133,7 +133,7 @@ public:
 private:
   [[nodiscard]] literal_index_t linear_find_free_literal(const cdcl_sat &solver,
     std::pair<literal_index_t, literal_index_t> literal_range) const;
-  [[nodiscard]] literal_index_t find_different_watch(cdcl_sat &solver, unsigned watch_index) const;
+  [[nodiscard]] literal_index_t find_different_watch(const cdcl_sat &solver, unsigned watch_index) const;
 
   [[nodiscard]] solve_status unit_propagate(cdcl_sat &solver, literal_index_t literal_num) const;
   [[nodiscard]] solve_status literal_state(const cdcl_sat &solver, literal_index_t literal_num) const;
@@ -148,7 +148,7 @@ private:
   std::array<literal_index_t, 2> m_watched_literals = { 0, 0 };
 };
 
-inline cdcl_sat::cdcl_sat(uint64_t max_attempts) : m_max_backtracks(max_attempts) {}
+inline cdcl_sat::cdcl_sat(uint64_t max_backtracks) : m_max_backtracks(max_backtracks) {}
 
 inline cdcl_sat::clause &cdcl_sat::add_clause() { return m_clauses.emplace_back(); }
 
