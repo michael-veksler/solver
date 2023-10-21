@@ -38,6 +38,7 @@ target_link_libraries(
   PRIVATE solver::solver_warnings
           solver::solver_options
           solver::solver_library
+          spdlog::spdlog
           Catch2::Catch2WithMain)
 
 if(WIN32 AND BUILD_SHARED_LIBS)

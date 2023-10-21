@@ -1,10 +1,12 @@
 #ifndef BINARY_DOMAIN_HPP
 #define BINARY_DOMAIN_HPP
 
+#include <solver/solver_library_export.hpp>
+
 #include <cassert>
 #include <cinttypes>
 #include <iterator>
-#include <solver/solver_library_export.hpp>
+#include <string>
 #include <vector>
 
 namespace solver {
@@ -57,6 +59,18 @@ public:
     return dom.m_one == 1;
   }
   friend constexpr bool operator==(binary_domain left, binary_domain right) = default;
+  [[nodiscard]] std::string to_string() const
+  {
+    if (is_universal()) {
+      return "{0, 1}";
+    } else if (empty()) {
+      return "{}";
+    } else if (contains(false)) {
+      return "{0}";
+    } else {
+      return "{1}";
+    }
+  }
 
 private:
   uint8_t m_zero : 1 = 1;

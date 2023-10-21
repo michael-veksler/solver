@@ -7,6 +7,7 @@ add_library(solver_library ${solver_library_files})
 add_library(solver::solver_library ALIAS solver_library)
 
 target_link_libraries(solver_library PRIVATE solver_options solver_warnings)
+target_link_system_libraries(solver_library PRIVATE spdlog::spdlog)
 
 target_include_directories(solver_library ${WARNING_GUARD} PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
                                                                   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>)
