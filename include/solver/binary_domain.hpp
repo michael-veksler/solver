@@ -6,8 +6,8 @@
 #include <cassert>
 #include <cinttypes>
 #include <iterator>
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace solver {
 
@@ -59,7 +59,8 @@ public:
     return dom.m_one == 1;
   }
   friend constexpr bool operator==(binary_domain left, binary_domain right) = default;
-  [[nodiscard]] std::string to_string() const {
+  [[nodiscard]] std::string to_string() const
+  {
     if (is_universal()) {
       return "{0, 1}";
     } else if (empty()) {

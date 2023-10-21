@@ -5,14 +5,14 @@
 #include <algorithm>
 #include <catch2/catch_test_macros.hpp>
 #include <functional>
-#include <spdlog/spdlog.h>
 #include <spdlog/cfg/env.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/spdlog.h>
 
 using namespace solver;
 
 
-TEST_CASE("Initially set problem", "[cdcl_sat]") // NOLINT
+TEST_CASE("Initially set problem", "[cdcl_sat]")// NOLINT
 {
   cdcl_sat sat;
   const cdcl_sat::variable_handle var = sat.add_var(binary_domain(true));
@@ -97,10 +97,7 @@ struct all_different_problem
     }
     constrain_all_different();
   }
-  one_hot_int make_one_hot(unsigned num_vals)
-  {
-    return {.vars = create_variables(solver, num_vals) };
-  }
+  one_hot_int make_one_hot(unsigned num_vals) { return { .vars = create_variables(solver, num_vals) }; }
   void constrain_at_least_one(const one_hot_int &integer_value)
   {
     cdcl_sat::clause &at_least_one = solver.add_clause();
@@ -171,19 +168,18 @@ struct all_literal_combinations
 {
   static constexpr unsigned NUM_VARS = 10;
 
-  explicit all_literal_combinations(unsigned max_attempts) : solver(max_attempts),
-    vars(create_variables(solver, NUM_VARS)) {
-    for (uint32_t literal_bits = 0; (literal_bits >> NUM_VARS) == 0; literal_bits++) {
-      add_all_literals(literal_bits);
-    }
-
+  explicit all_literal_combinations(unsigned max_attempts)
+    : solver(max_attempts), vars(create_variables(solver, NUM_VARS))
+  {
+    for (uint32_t literal_bits = 0; (literal_bits >> NUM_VARS) == 0; literal_bits++) { add_all_literals(literal_bits); }
   }
 
-  void add_all_literals(uint32_t literal_bits) {
-    cdcl_sat::clause & clause = solver.add_clause();
-    for (unsigned literal_index=0; literal_index != NUM_VARS; ++literal_index) {
+  void add_all_literals(uint32_t literal_bits)
+  {
+    cdcl_sat::clause &clause = solver.add_clause();
+    for (unsigned literal_index = 0; literal_index != NUM_VARS; ++literal_index) {
       const bool literal = ((literal_bits >> literal_index) & 1U) == 1;
-      clause.add_literal(vars[literal_index],  literal);
+      clause.add_literal(vars[literal_index], literal);
     }
   }
 
@@ -194,13 +190,15 @@ struct all_literal_combinations
 
 TEST_CASE("max attempts", "[cdcl_sat]")
 {
-  const unsigned backtracks_required = (1U << (all_literal_combinations::NUM_VARS-1)) - 1;
-  SECTION("unsat") {
+  const unsigned backtracks_required = (1U << (all_literal_combinations::NUM_VARS - 1)) - 1;
+  SECTION("unsat")
+  {
     all_literal_combinations expected_unsat(backtracks_required);
     REQUIRE(expected_unsat.solver.solve() == solve_status::UNSAT);
   }
-  SECTION("unknown") {
-    all_literal_combinations expected_unknown(backtracks_required-1);
+  SECTION("unknown")
+  {
+    all_literal_combinations expected_unknown(backtracks_required - 1);
     REQUIRE(expected_unknown.solver.solve() == solve_status::UNKNOWN);
   }
 }
