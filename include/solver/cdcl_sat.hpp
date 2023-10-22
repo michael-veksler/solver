@@ -1,5 +1,5 @@
-#ifndef TRIVIAL_SAT_HPP
-#define TRIVIAL_SAT_HPP
+#ifndef CDCL_SAT_HPP
+#define CDCL_SAT_HPP
 
 #include "binary_domain.hpp"
 #include "sat_types.hpp"
@@ -137,6 +137,15 @@ private:
 
   [[nodiscard]] solve_status unit_propagate(cdcl_sat &solver, literal_index_t literal_num) const;
   [[nodiscard]] solve_status literal_state(const cdcl_sat &solver, literal_index_t literal_num) const;
+  /**
+   * @brief Remove all duplicate variables.
+   *
+   * @retval true all went well
+   * @return false Can't be removed since it could change semantics, i.e.,
+                   there are both positive and negative literals for the same variable, making the clause a tautology.
+   */
+  [[nodiscard]] bool remove_duplicate_variables();
+
   /**
    * @brief The literals of the CNF
    *
