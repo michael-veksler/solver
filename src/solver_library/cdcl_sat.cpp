@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <optional>
 #include <ranges>
+#include <set>
 #include <stdexcept>
 #include <tuple>
 
@@ -180,8 +181,28 @@ solve_status cdcl_sat::clause::literal_state(const cdcl_sat &solver, literal_ind
   }
 }
 
+bool cdcl_sat::clause::remove_duplicate_variables()
+{
+  std::set<int> encountered_literals;
+  std::vector<int> replacement_literals;
+  for (auto iter = m_literals.begin(); iter != m_literals.end(); ++iter) {
+    if (encountered_literals.contains(*iter)) {
+      if (replacement_literals.empty()) {
+        replacement_literals.insert(replacement_literals.end(), m_literals.begin(), iter);
+      }
+      continue;
+    }
+    if (encountered_literals.contains(-*iter)) { return false; }
+    encountered_literals.insert(*iter);
+    if (!replacement_literals.empty()) { replacement_literals.push_back(*iter); }
+  }
+  if (!replacement_literals.empty()) { m_literals = std::move(replacement_literals); }
+  return true;
+}
+
 solve_status cdcl_sat::clause::initial_propagate(cdcl_sat &solver, clause_handle this_clause)
 {
+  if (!remove_duplicate_variables()) { return solve_status::SAT; }
   m_watched_literals = { 0, size() - 1 };
   m_watched_literals[0] = linear_find_free_literal(solver, { 0U, static_cast<literal_index_t>(m_literals.size()) });
   if (m_watched_literals[0] == m_literals.size()) { return solve_status::UNSAT; }
