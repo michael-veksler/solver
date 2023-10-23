@@ -33,11 +33,11 @@ function(solver_setup_dependencies)
       GIT_TAG "boost-1.81.0"
     )
   endif()
-  if(NOT TARGET Boost::detail)
+  if(NOT TARGET Boost::config)
     CPMAddPackage(
-      NAME boost_detail
+      NAME boost_config
       VERSION 1.81.0
-      GITHUB_REPOSITORY "boostorg/detail"
+      GITHUB_REPOSITORY "boostorg/config"
       GIT_TAG "boost-1.81.0"
     )
   endif()
