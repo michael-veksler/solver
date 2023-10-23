@@ -25,11 +25,19 @@ function(solver_setup_dependencies)
   endif()
 
 
-  if(NOT TARGET Boost::Numeric_conversion)
+  if(NOT TARGET Boost::numeric_conversion)
     CPMAddPackage(
       NAME boost_numeric_conversion
       VERSION 1.81.0
       GITHUB_REPOSITORY "boostorg/numeric_conversion"
+      GIT_TAG "boost-1.81.0"
+    )
+  endif()
+  if(NOT TARGET Boost::detail)
+    CPMAddPackage(
+      NAME boost_detail
+      VERSION 1.81.0
+      GITHUB_REPOSITORY "boostorg/detail"
       GIT_TAG "boost-1.81.0"
     )
   endif()
