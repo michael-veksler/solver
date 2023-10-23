@@ -65,6 +65,14 @@ function(solver_setup_dependencies)
       GIT_TAG "boost-${BOOST_VERSION}"
     )
   endif()
+  if(NOT TARGET Boost::preprocessor)
+    CPMAddPackage(
+      NAME boost_preprocessor
+      VERSION ${BOOST_VERSION}
+      GITHUB_REPOSITORY "boostorg/preprocessor"
+      GIT_TAG "boost-${BOOST_VERSION}"
+    )
+  endif()
 
   if(NOT TARGET Catch2::Catch2WithMain)
     cpmaddpackage("gh:catchorg/Catch2@3.3.2")
