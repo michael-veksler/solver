@@ -8,11 +8,7 @@ add_library(solver::solver_library ALIAS solver_library)
 
 target_link_libraries(solver_library PRIVATE solver_options solver_warnings)
 target_link_system_libraries(solver_library PRIVATE spdlog::spdlog)
-get_cmake_property(_variableNames VARIABLES)
-list (SORT _variableNames)
-foreach (_variableName ${_variableNames})
-    message(STATUS "${_variableName}=${${_variableName}}")
-endforeach()
+
 include_directories(${boost_numeric_conversion_SOURCE_DIR}/include
                     ${boost_config_SOURCE_DIR}/include
                     ${boost_core_SOURCE_DIR}/include

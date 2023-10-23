@@ -41,6 +41,16 @@ target_link_libraries(
           spdlog::spdlog
           Catch2::Catch2WithMain)
 
+include_directories(${boost_numeric_conversion_SOURCE_DIR}/include
+          ${boost_config_SOURCE_DIR}/include
+          ${boost_core_SOURCE_DIR}/include
+          ${boost_type_traits_SOURCE_DIR}/include
+          ${boost_mpl_SOURCE_DIR}/include
+          ${boost_preprocessor_SOURCE_DIR}/include
+          ${boost_throw_exception_SOURCE_DIR}/include
+          ${boost_assert_SOURCE_DIR}/include)
+
+
 if(WIN32 AND BUILD_SHARED_LIBS)
   add_custom_command(
     TARGET tests
