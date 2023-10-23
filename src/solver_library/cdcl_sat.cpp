@@ -129,6 +129,8 @@ struct cdcl_sat::conflict_analysis_algo
   std::map<variable_handle, bool> conflict_literals;
   std::map<variable_handle, variable_handle> implication_depth_to_var;
 };
+
+
 [[nodiscard]] auto cdcl_sat::analyze_conflict(clause_handle conflicting_clause)
   -> std::optional<std::pair<level_t, clause_handle>>
 {
