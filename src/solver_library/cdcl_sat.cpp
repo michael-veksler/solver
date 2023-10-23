@@ -246,7 +246,7 @@ bool cdcl_sat::initial_propagate()
     const solve_status status = m_clauses[handle].initial_propagate({ .solver = *this, .clause = handle });
     if (status == solve_status::UNSAT) { return false; }
   }
-  std::optional<clause_handle> conflicting_clause = propagate();
+  const std::optional<clause_handle> conflicting_clause = propagate();
   return !conflicting_clause;
 }
 
