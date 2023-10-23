@@ -3,6 +3,7 @@
 
 #include "binary_domain.hpp"
 #include "sat_types.hpp"
+#include <boost/numeric/conversion/cast.hpp>
 #include <limits>
 #include <solver/solver_library_export.hpp>
 
@@ -31,6 +32,7 @@ private:
 public:
   SOLVER_LIBRARY_EXPORT class clause;
   using variable_handle = uint32_t;
+  using level_t = variable_handle;
   SOLVER_LIBRARY_EXPORT explicit cdcl_sat(uint64_t max_backtracks = default_max_backtracks);
 
   [[nodiscard]] variable_handle add_var(binary_domain domain = {})
@@ -47,20 +49,38 @@ public:
   [[nodiscard]] size_t count_variables() const { return m_domains.size(); }
 
   [[nodiscard]] binary_domain get_current_domain(variable_handle var) const { return m_domains[var]; }
-  void set_domain(variable_handle var, binary_domain domain);
+  void set_domain(variable_handle var, binary_domain domain, clause_handle by_clause = implication::DECISION);
 
   void watch_value_removal(clause_handle this_clause, variable_handle watched_var, bool watched_value)
   {
     assert(watched_var < m_watches[watched_value].size());// NOLINT
     m_watches.at(static_cast<unsigned>(watched_value))[watched_var].push_back(this_clause);
   }
-  [[nodiscard]] size_t get_level() const { return m_chosen_var_by_order.size(); }
+  [[nodiscard]] level_t get_level() const { return boost::numeric_cast<level_t>(m_chosen_var_by_order.size()); }
 
 private:
-  [[nodiscard]] bool propagate();
+  struct implication
+  {
+    static constexpr level_t NO_LEVEL = 0;
+    static constexpr clause_handle DECISION = static_cast<clause_handle>(-1LL);
+    clause_handle clause = DECISION;
+    variable_handle implication_depth = 0;
+    level_t level = NO_LEVEL;
+  };
+  struct conflict_analysis_algo;
+  friend struct conflict_analysis_algo;
+
+  struct propagation_trigger
+  {
+    clause_handle this_clause;
+    variable_handle triggering_var;
+  };
+
+  [[nodiscard]] std::optional<clause_handle> propagate();
   [[nodiscard]] bool initial_propagate();
   [[nodiscard]] bool make_choice();
-  void backtrack();
+  [[nodiscard]] std::optional<std::pair<level_t, clause_handle>> analyze_conflict(clause_handle conflicting_clause);
+  void backtrack(level_t level);
   [[nodiscard]] std::optional<variable_handle> find_free_var(variable_handle search_start) const;
   void validate_all_singletons() const;
 
@@ -75,6 +95,7 @@ private:
    * That's why, domain index 0 is unused, to make it easier to distinguish positive and negative literals.
    */
   std::vector<binary_domain> m_domains{ binary_domain{} };
+  std::vector<implication> m_implications{ implication{} };
   std::array<std::vector<watch_container>, 2> m_watches;
   std::deque<variable_handle> m_dirty_variables;
 
@@ -88,19 +109,20 @@ class cdcl_sat::clause
 {
 public:
   using literal_index_t = uint32_t;
+  struct propagation_context
+  {
+    cdcl_sat &solver;
+    clause_handle clause;
+  };
+
   clause() = default;
   void reserve(literal_index_t num_literals) { m_literals.reserve(num_literals); }
   void add_literal(variable_handle var_num, bool is_positive)
   {
     m_literals.push_back(is_positive ? static_cast<int>(var_num) : -static_cast<int>(var_num));
   }
-  struct propagation_trigger
-  {
-    clause_handle this_clause;
-    variable_handle triggering_var;
-  };
-  [[nodiscard]] solve_status initial_propagate(cdcl_sat &solver, clause_handle this_clause);
-  [[nodiscard]] solve_status propagate(cdcl_sat &solver, propagation_trigger trigger);
+  [[nodiscard]] solve_status initial_propagate(propagation_context propagation);
+  [[nodiscard]] solve_status propagate(propagation_context propagation, propagation_trigger trigger);
   [[nodiscard]] variable_handle get_variable(literal_index_t literal_num) const
   {
     assert(literal_num < m_literals.size());// NOLINT
@@ -135,14 +157,14 @@ private:
     std::pair<literal_index_t, literal_index_t> literal_range) const;
   [[nodiscard]] literal_index_t find_different_watch(const cdcl_sat &solver, unsigned watch_index) const;
 
-  [[nodiscard]] solve_status unit_propagate(cdcl_sat &solver, literal_index_t literal_num) const;
+  [[nodiscard]] solve_status unit_propagate(propagation_context propagation, literal_index_t literal_num) const;
   [[nodiscard]] solve_status literal_state(const cdcl_sat &solver, literal_index_t literal_num) const;
   /**
    * @brief Remove all duplicate variables.
    *
    * @retval true all went well
    * @return false Can't be removed since it could change semantics, i.e.,
-                   there are both positive and negative literals for the same variable, making the clause a tautology.
+                   there are both positive and negative literals for the same variable, making the ; a tautology.
    */
   [[nodiscard]] bool remove_duplicate_variables();
 
