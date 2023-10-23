@@ -24,21 +24,29 @@ function(solver_setup_dependencies)
       "SPDLOG_FMT_EXTERNAL ON")
   endif()
 
-
+  set(BOOST_VERSION 1.81.0)
   if(NOT TARGET Boost::numeric_conversion)
     CPMAddPackage(
       NAME boost_numeric_conversion
-      VERSION 1.81.0
+      VERSION ${BOOST_VERSION}
       GITHUB_REPOSITORY "boostorg/numeric_conversion"
-      GIT_TAG "boost-1.81.0"
+      GIT_TAG "boost-${BOOST_VERSION}"
     )
   endif()
   if(NOT TARGET Boost::config)
     CPMAddPackage(
       NAME boost_config
-      VERSION 1.81.0
+      VERSION ${BOOST_VERSION}
       GITHUB_REPOSITORY "boostorg/config"
-      GIT_TAG "boost-1.81.0"
+      GIT_TAG "boost-${BOOST_VERSION}"
+    )
+  endif()
+  if(NOT TARGET Boost::core)
+    CPMAddPackage(
+      NAME boost_core
+      VERSION ${BOOST_VERSION}
+      GITHUB_REPOSITORY "boostorg/core"
+      GIT_TAG "boost-${BOOST_VERSION}"
     )
   endif()
 
