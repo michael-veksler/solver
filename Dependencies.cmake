@@ -33,9 +33,9 @@ function(solver_setup_dependencies)
     else()
       CPMAddPackage(
         NAME Boost
-        VERSION 1.74.0
+        VERSION 1.82.0
         GITHUB_REPOSITORY "boostorg/boost"
-        GIT_TAG "boost-1.74.0"
+        GIT_TAG "boost-1.82.0"
       )
     endif()
 
