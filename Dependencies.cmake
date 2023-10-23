@@ -28,9 +28,7 @@ function(solver_setup_dependencies)
   if(NOT TARGET Boost::Boost)
     find_package(Boost 1.74.0 COMPONENTS headers)
 
-    if(Boost_FOUND)
-      include_directories(${Boost_INCLUDE_DIRS})
-    else()
+    if(NOT Boost_FOUND)
       CPMAddPackage(
         NAME Boost
         VERSION 1.82.0
