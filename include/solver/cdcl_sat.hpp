@@ -3,7 +3,6 @@
 
 #include "binary_domain.hpp"
 #include "sat_types.hpp"
-#include <boost/numeric/conversion/cast.hpp>
 #include <limits>
 #include <solver/solver_library_export.hpp>
 
@@ -11,6 +10,7 @@
 #include <cassert>
 #include <cinttypes>
 #include <deque>
+#include <limits>
 #include <optional>
 #include <string>
 #include <variant>
@@ -56,7 +56,10 @@ public:
     assert(watched_var < m_watches[watched_value].size());// NOLINT
     m_watches.at(static_cast<unsigned>(watched_value))[watched_var].push_back(this_clause);
   }
-  [[nodiscard]] level_t get_level() const { return boost::numeric_cast<level_t>(m_chosen_var_by_order.size()); }
+  [[nodiscard]] level_t get_level() const {
+    assert(m_chosen_var_by_order.size() <= std::numeric_limits<level_t>::max());
+    return static_cast<level_t>(m_chosen_var_by_order.size());
+  }
 
 private:
   struct implication
@@ -80,7 +83,7 @@ private:
   [[nodiscard]] bool initial_propagate();
   [[nodiscard]] bool make_choice();
   [[nodiscard]] std::optional<std::pair<level_t, clause_handle>> analyze_conflict(clause_handle conflicting_clause);
-  void backtrack(level_t level);
+  void backtrack(level_t backtrack_level);
   [[nodiscard]] std::optional<variable_handle> find_free_var(variable_handle search_start) const;
   void validate_all_singletons() const;
 
