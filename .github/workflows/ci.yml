@@ -214,3 +214,8 @@ jobs:
           flags: ${{ runner.os }}
           name: ${{ runner.os }}-coverage
           files: ./build/coverage.xml
+          paths:
+            - "include/**/*"
+            - "src/**/*"
+            # Excluding the fuzz tests, since they are not always compiled and bring-in false-negative coverage
+            - "test/**/*"
