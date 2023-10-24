@@ -9,6 +9,17 @@ add_library(solver::solver_library ALIAS solver_library)
 target_link_libraries(solver_library PRIVATE solver_options solver_warnings)
 target_link_system_libraries(solver_library PRIVATE spdlog::spdlog)
 
+include_directories(
+  SYSTEM
+  ${boost_numeric_conversion_SOURCE_DIR}/include
+  ${boost_config_SOURCE_DIR}/include
+  ${boost_core_SOURCE_DIR}/include
+  ${boost_type_traits_SOURCE_DIR}/include
+  ${boost_mpl_SOURCE_DIR}/include
+  ${boost_preprocessor_SOURCE_DIR}/include
+  ${boost_throw_exception_SOURCE_DIR}/include
+  ${boost_assert_SOURCE_DIR}/include)
+
 target_include_directories(solver_library ${WARNING_GUARD} PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
                                                                   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>)
 

@@ -10,6 +10,7 @@
 #include <cassert>
 #include <cinttypes>
 #include <deque>
+#include <limits>
 #include <optional>
 #include <string>
 #include <variant>
@@ -31,6 +32,7 @@ private:
 public:
   SOLVER_LIBRARY_EXPORT class clause;
   using variable_handle = uint32_t;
+  using level_t = variable_handle;
   SOLVER_LIBRARY_EXPORT explicit cdcl_sat(uint64_t max_backtracks = default_max_backtracks);
 
   [[nodiscard]] variable_handle add_var(binary_domain domain = {})
@@ -47,20 +49,101 @@ public:
   [[nodiscard]] size_t count_variables() const { return m_domains.size(); }
 
   [[nodiscard]] binary_domain get_current_domain(variable_handle var) const { return m_domains[var]; }
-  void set_domain(variable_handle var, binary_domain domain);
+  /**
+   * @brief Set the domain of a variable.
+   *
+   * During solving, this also updates the historical implication-data, used for conflict analysis.
+   *
+   * @param var   The variable to update.
+   * @param domain  The domain to set to the variable.
+   * @param by_clause If set, this is the trigger of the update (either a decision of a clause).
+   */
+  void set_domain(variable_handle var, binary_domain domain, clause_handle by_clause = implication::DECISION);
 
   void watch_value_removal(clause_handle this_clause, variable_handle watched_var, bool watched_value)
   {
     assert(watched_var < m_watches[watched_value].size());// NOLINT
     m_watches.at(static_cast<unsigned>(watched_value))[watched_var].push_back(this_clause);
   }
-  [[nodiscard]] size_t get_level() const { return m_chosen_var_by_order.size(); }
+
+  /**
+   * @brief Get current decision level.
+   *
+   * The decision level is the number of active decision, i.e., the search-points at which
+   * the algorithm made a decision branch.
+   *
+   * @return The current decision level.
+   */
+  [[nodiscard]] level_t get_level() const
+  {
+    assert(m_chosen_vars.size() <= std::numeric_limits<level_t>::max());
+    return static_cast<level_t>(m_chosen_vars.size());
+  }
 
 private:
-  [[nodiscard]] bool propagate();
+  /**
+   * @brief Holds historic information about a single implication.
+   *
+   * An implication is the act of propagating a single clause that ends with the
+   * reduction, i.e., implication, of a single variable's domain.
+   */
+  struct implication
+  {
+    static constexpr clause_handle DECISION = static_cast<clause_handle>(-1LL);
+
+    /**
+     * @brief Who caused the implication.
+     *
+     * It can be either one of:
+     *   - DECISION: A decision has been made.
+     *   - clause: A clause has made the domain reduction.
+     */
+    clause_handle implication_cause = DECISION;
+
+    /**
+     * @brief The index of this implication in m_implied_vars
+     */
+    variable_handle implication_depth = 0;
+    /**
+     * @brief The decision level that this implication belongs to.
+     *
+     * When this implication was made, then \p level == \p m_chosen_vars.size()
+     */
+    level_t level = 0;
+  };
+  struct conflict_analysis_algo;
+  friend struct conflict_analysis_algo;
+
+  /**
+   * @brief Propagate all clauses to a fix-point.
+   *
+   * @retval std::nullopt if all is well.
+   * @retval clause_handle if this clause is the conflicting-clause, i.e., it couldn't be satisfied.
+   */
+  [[nodiscard]] std::optional<clause_handle> propagate();
   [[nodiscard]] bool initial_propagate();
   [[nodiscard]] bool make_choice();
-  void backtrack();
+
+  /**
+   * @brief Analyze the current propagation-conflict
+   *
+   * @param conflicting_clause  The clause which was unsatisfied during the propagation.
+   * @retval std::nullopt if the algorithm detects that the problem is unsatisfiable.
+   * @retval level,clause_handle  \p clause_handle is the learned conflict-clause, and \p level is the
+   *                              earliest level at which \p clause_handle will make an implication to avert a similar
+   *                              failure.
+   */
+  [[nodiscard]] std::optional<std::pair<level_t, clause_handle>> analyze_conflict(clause_handle conflicting_clause);
+
+  /**
+   * @brief Backtrack to the given level.
+   *
+   * Undo all implication and decisions done after the provided level, but keep all learned conflict-clauses clauses.
+   * All decisions and implications done before this requested level are kept intact.
+   *
+   * @param backtrack_level  The level to backtrack-to.
+   */
+  void backtrack(level_t backtrack_level);
   [[nodiscard]] std::optional<variable_handle> find_free_var(variable_handle search_start) const;
   void validate_all_singletons() const;
 
@@ -75,12 +158,20 @@ private:
    * That's why, domain index 0 is unused, to make it easier to distinguish positive and negative literals.
    */
   std::vector<binary_domain> m_domains{ binary_domain{} };
+  /**
+   * @brief The implications and decisions of the solver.
+   *
+   * m_implications[var] are the implications of the given variable.
+   *
+   * @invariant forall i,var in enumerate(m_implied_vars): m_implications[var].implication_depth
+   */
+  std::vector<implication> m_implications{ implication{} };
   std::array<std::vector<watch_container>, 2> m_watches;
   std::deque<variable_handle> m_dirty_variables;
 
   std::vector<clause> m_clauses;
-  std::vector<variable_handle> m_changed_var_by_order;
-  std::vector<variable_handle> m_chosen_var_by_order;
+  std::vector<variable_handle> m_implied_vars;
+  std::vector<variable_handle> m_chosen_vars;
 };
 
 
@@ -88,19 +179,20 @@ class cdcl_sat::clause
 {
 public:
   using literal_index_t = uint32_t;
+  struct propagation_context
+  {
+    cdcl_sat &solver;
+    clause_handle clause;
+  };
+
   clause() = default;
   void reserve(literal_index_t num_literals) { m_literals.reserve(num_literals); }
   void add_literal(variable_handle var_num, bool is_positive)
   {
     m_literals.push_back(is_positive ? static_cast<int>(var_num) : -static_cast<int>(var_num));
   }
-  struct propagation_trigger
-  {
-    clause_handle this_clause;
-    variable_handle triggering_var;
-  };
-  [[nodiscard]] solve_status initial_propagate(cdcl_sat &solver, clause_handle this_clause);
-  [[nodiscard]] solve_status propagate(cdcl_sat &solver, propagation_trigger trigger);
+  [[nodiscard]] solve_status initial_propagate(propagation_context propagation);
+  [[nodiscard]] solve_status propagate(propagation_context propagation, variable_handle triggering_var);
   [[nodiscard]] variable_handle get_variable(literal_index_t literal_num) const
   {
     assert(literal_num < m_literals.size());// NOLINT
@@ -135,7 +227,7 @@ private:
     std::pair<literal_index_t, literal_index_t> literal_range) const;
   [[nodiscard]] literal_index_t find_different_watch(const cdcl_sat &solver, unsigned watch_index) const;
 
-  [[nodiscard]] solve_status unit_propagate(cdcl_sat &solver, literal_index_t literal_num) const;
+  [[nodiscard]] solve_status unit_propagate(propagation_context propagation, literal_index_t literal_num) const;
   [[nodiscard]] solve_status literal_state(const cdcl_sat &solver, literal_index_t literal_num) const;
   /**
    * @brief Remove all duplicate variables.
