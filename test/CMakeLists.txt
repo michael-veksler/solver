@@ -55,6 +55,8 @@ include_directories(
 
   message("error at: /home/michael/seekthrough/solver/build-debug/_deps/catch2-src/src/catch2/../catch2/matchers/catch_matchers.hpp")
 message("Catch2_SOURCE_DIR/src=${Catch2_SOURCE_DIR}/src")
+execute_process(COMMAND ls -l ${Catch2_SOURCE_DIR}/src)
+execute_process(COMMAND find ${Catch2_SOURCE_DIR} -name catch_matchers.hpp)
 # include(CMakePrintHelpers)
 # get_cmake_property(_variableNames VARIABLES)
 # list (SORT _variableNames)
