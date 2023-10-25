@@ -50,8 +50,9 @@ include_directories(
   ${boost_mpl_SOURCE_DIR}/include
   ${boost_preprocessor_SOURCE_DIR}/include
   ${boost_throw_exception_SOURCE_DIR}/include
-  ${boost_assert_SOURCE_DIR}/include)
-
+  ${boost_assert_SOURCE_DIR}/include
+  ${Catch2_SOURCE_DIR}/src
+  ${spdlog_SOURCE_DIR}/include)
 
 if(WIN32 AND BUILD_SHARED_LIBS)
   add_custom_command(
