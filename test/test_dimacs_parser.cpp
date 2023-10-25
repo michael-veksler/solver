@@ -15,7 +15,7 @@
 #include "spdlog/spdlog.h"
 
 using namespace solver;
-using Catch::Matchers::EndsWith;
+using Catch::Matchers::ContainsSubstring;
 using Catch::Matchers::RangeEquals;
 
 namespace {
@@ -32,7 +32,7 @@ public:
   {
     auto ostream_sink = std::make_shared<spdlog::sinks::ostream_sink_st>(out);
     auto ostream_logger = std::make_shared<spdlog::logger>(logger_name, ostream_sink);
-    ostream_logger->set_pattern("%v");
+    ostream_logger->set_pattern("<<<%v>>>");
     ostream_logger->set_level(spdlog::level::debug);
     spdlog::set_default_logger(ostream_logger);
   }
@@ -54,6 +54,13 @@ private:
 };
 }// namespace
 
+namespace {
+/**
+ * @brief Helper class to hold one parsing case.
+ *
+ * It holds the output of the logger, and the result of the parsing.
+ *
+ */
 struct dimacs_parse_case
 {
   void parse(const std::string &text)
@@ -72,11 +79,12 @@ struct dimacs_parse_case
     dimacs_parser parser(getline);
     parser.parse(construct_problem, register_clause);
   }
-  std::vector<std::vector<int>> clauses;
+  std::vector<std::vector<int>> clauses;///< The resulting clause
   std::ostringstream log_stream;
   unsigned n_clauses = 0;
   unsigned n_variables = 0;
 };
+}// namespace
 
 TEST_CASE("dimacs empty input", "[dimacs_parser]")
 {
@@ -92,7 +100,7 @@ TEST_CASE("dimacs bad header prefix", "[dimacs_parser]")
     tester.parse("p cn 2 3"), std::runtime_error, Catch::Matchers::Message("Invalid DIMACS header"));
   spdlog::info("actual message=<<<{}>>>", tester.log_stream.str());
   REQUIRE_THAT(tester.log_stream.str(),
-    EndsWith("1: Invalid dimacs input format, expecting a line prefix 'p cnf ' but got 'p cn 2 3'\n"));
+    ContainsSubstring("<<<1: Invalid dimacs input format, expecting a line prefix 'p cnf ' but got 'p cn 2 3'>>>"));
 }
 
 TEST_CASE("dimacs header prefix numbers", "[dimacs_parser]")
@@ -103,8 +111,8 @@ TEST_CASE("dimacs header prefix numbers", "[dimacs_parser]")
     std::runtime_error,
     Catch::Matchers::Message("Invalid DIMACS header"));
   REQUIRE_THAT(tester.log_stream.str(),
-    EndsWith("2: Invalid dimacs input format, expecting a header 'p cnf <variables: unsigned int> "
-             "<clauses: unsigned int>' but got 'p cnf -3 2'\n"));
+    ContainsSubstring("<<<2: Invalid dimacs input format, expecting a header 'p cnf <variables: unsigned int> "
+                      "<clauses: unsigned int>' but got 'p cnf -3 2'>>>"));
 }
 
 
@@ -124,8 +132,8 @@ TEST_CASE("dimacs n_variables overflow", "[dimacs_parser]")
     std::runtime_error,
     Catch::Matchers::Message("Invalid DIMACS header"));
   REQUIRE_THAT(tester.log_stream.str(),
-    EndsWith("1: Invalid dimacs input format, expecting a header 'p cnf <variables: unsigned int> "
-             "<clauses: unsigned int>' but got 'p cnf 2147483648 3'\n"));
+    ContainsSubstring("<<<1: Invalid dimacs input format, expecting a header 'p cnf <variables: unsigned int> "
+                      "<clauses: unsigned int>' but got 'p cnf 2147483648 3'>>>"));
 }
 
 TEST_CASE("dimacs n_variables almost overflow", "[dimacs_parser]")
@@ -145,7 +153,8 @@ TEST_CASE("dimacs invalid 0 in clause middle", "[dimacs_parser]")
                                            2 0 3 0)"),
     std::runtime_error,
     Catch::Matchers::Message("More than one 0 per-line"));
-  REQUIRE_THAT(tester.log_stream.str(), EndsWith("4: 0 should be only at the end for the line '2 0 3 0'\n"));
+  REQUIRE_THAT(
+    tester.log_stream.str(), ContainsSubstring("<<<4: 0 should be only at the end for the line '2 0 3 0'>>>"));
 }
 
 TEST_CASE("dimacs missing 0 at clause end", "[dimacs_parser]")
@@ -156,7 +165,8 @@ TEST_CASE("dimacs missing 0 at clause end", "[dimacs_parser]")
                                            2 2 3 0)"),
     std::runtime_error,
     Catch::Matchers::Message("Missing 0 at the end of the line"));
-  REQUIRE_THAT(tester.log_stream.str(), EndsWith("2: Missing 0 at the end of the line for line '1 -2 3'\n"));
+  REQUIRE_THAT(
+    tester.log_stream.str(), ContainsSubstring("<<<2: Missing 0 at the end of the line for line '1 -2 3'>>>"));
 }
 
 
