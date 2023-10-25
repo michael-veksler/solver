@@ -51,18 +51,8 @@ include_directories(
   ${boost_preprocessor_SOURCE_DIR}/include
   ${boost_throw_exception_SOURCE_DIR}/include
   ${boost_assert_SOURCE_DIR}/include
-  ${Catch2_SOURCE_DIR}/src)
-
-  message("error at: /home/michael/seekthrough/solver/build-debug/_deps/catch2-src/src/catch2/../catch2/matchers/catch_matchers.hpp")
-message("Catch2_SOURCE_DIR/src=${Catch2_SOURCE_DIR}/src")
-execute_process(COMMAND ls -l ${Catch2_SOURCE_DIR}/src)
-execute_process(COMMAND find ${Catch2_SOURCE_DIR} -name catch_matchers.hpp)
-# include(CMakePrintHelpers)
-# get_cmake_property(_variableNames VARIABLES)
-# list (SORT _variableNames)
-# foreach (_variableName ${_variableNames})
-# cmake_print_variables(${_variableName})
-# endforeach()
+  ${Catch2_SOURCE_DIR}/src
+  ${spdlog_SOURCE_DIR}/include)
 
 if(WIN32 AND BUILD_SHARED_LIBS)
   add_custom_command(
