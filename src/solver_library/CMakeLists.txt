@@ -18,7 +18,8 @@ include_directories(
   ${boost_mpl_SOURCE_DIR}/include
   ${boost_preprocessor_SOURCE_DIR}/include
   ${boost_throw_exception_SOURCE_DIR}/include
-  ${boost_assert_SOURCE_DIR}/include)
+  ${boost_assert_SOURCE_DIR}/include
+  ${FMT_SOURCE_DIR}/include)
 
 target_include_directories(solver_library ${WARNING_GUARD} PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
                                                                   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>)
