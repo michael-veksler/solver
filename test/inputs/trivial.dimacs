@@ -1,0 +1,11 @@
+c a trivial sanity test
+
+c 2-variables 2-clauses
+p cnf 2 2
+
+c a clause to set 0 to the first variable
+-1 0
+
+c a clause to set 1 to the second variable
+2 0
+
