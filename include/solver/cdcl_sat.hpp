@@ -35,11 +35,16 @@ public:
   using level_t = variable_handle;
   SOLVER_LIBRARY_EXPORT explicit cdcl_sat(uint64_t max_backtracks = default_max_backtracks);
 
+  void reserve_vars(unsigned var_count) { m_domains.reserve(var_count); }
+  [[nodiscard]] size_t num_vars() const { return m_domains.size(); }
   [[nodiscard]] variable_handle add_var(binary_domain domain = {})
   {
     m_domains.push_back(domain);
     return static_cast<variable_handle>(m_domains.size() - 1);
   }
+
+  void reserve_clauses(unsigned clause_count);
+
   [[nodiscard]] clause &add_clause();
 
   solve_status solve();
@@ -250,6 +255,8 @@ private:
 };
 
 inline cdcl_sat::cdcl_sat(uint64_t max_backtracks) : m_max_backtracks(max_backtracks) {}
+
+inline void cdcl_sat::reserve_clauses(unsigned int clause_count) { m_clauses.reserve(clause_count); }
 
 inline cdcl_sat::clause &cdcl_sat::add_clause() { return m_clauses.emplace_back(); }
 

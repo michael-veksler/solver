@@ -7,7 +7,7 @@ project(CmakeConfigPackageTests LANGUAGES CXX)
 if(PROJECT_IS_TOP_LEVEL OR TEST_INSTALLED_VERSION)
   enable_testing()
 
-  find_package(solver CONFIG REQUIRED) # for intro, project_options, ...
+  find_package(solver_exe CONFIG REQUIRED) # for solver_exe, project_options, ...
 
   if(NOT TARGET solver_options)
     message(FATAL_ERROR "Requiered config package not found!")
@@ -20,14 +20,24 @@ endif()
 include(${Catch2_SOURCE_DIR}/extras/Catch.cmake)
 
 # Provide a simple smoke test to make sure that the CLI works and can display a --help message
-add_test(NAME cli.has_help COMMAND intro --help)
+add_test(NAME cli.has_help COMMAND solver_exe --help)
 
-# Provide a test to verify that the version being reported from the application
-# matches the version given to CMake. This will be important once you package
-# your program. Real world shows that this is the kind of simple mistake that is easy
-# to make, but also easy to test for.
-add_test(NAME cli.version_matches COMMAND intro --version)
-set_tests_properties(cli.version_matches PROPERTIES PASS_REGULAR_EXPRESSION "${PROJECT_VERSION}")
+set(TEST_INPUTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/inputs)
+
+add_test(NAME cli.trivial_sat COMMAND solver_exe --solver trivial_sat ${TEST_INPUTS_DIR}/trivial.dimacs)
+set_tests_properties(cli.trivial_sat PROPERTIES PASS_REGULAR_EXPRESSION "SAT v1=0 v2=1")
+
+add_test(NAME cli.cdcl_sat COMMAND solver_exe --solver cdcl_sat ${TEST_INPUTS_DIR}/trivial.dimacs)
+set_tests_properties(cli.cdcl_sat PROPERTIES PASS_REGULAR_EXPRESSION "SAT v1=0 v2=1")
+
+add_test(NAME cli.empty COMMAND solver_exe --solver cdcl_sat ${TEST_INPUTS_DIR}/empty.dimacs)
+set_tests_properties(cli.empty PROPERTIES PASS_REGULAR_EXPRESSION "Invalid dimacs input format - all lines are either empty or commented out")
+
+add_test(NAME cli.cdcl_simple_unsat COMMAND solver_exe --solver cdcl_sat ${TEST_INPUTS_DIR}/simple_unsat.dimacs)
+set_tests_properties(cli.cdcl_simple_unsat PROPERTIES PASS_REGULAR_EXPRESSION "UNSAT")
+
+add_test(NAME cli.trivial_simple_unsat COMMAND solver_exe --solver trivial_sat ${TEST_INPUTS_DIR}/simple_unsat.dimacs)
+set_tests_properties(cli.trivial_simple_unsat PROPERTIES PASS_REGULAR_EXPRESSION "UNSAT")
 
 file(GLOB test_source_files "*.cpp")
 

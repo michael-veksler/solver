@@ -28,11 +28,15 @@ public:
   using variable_handle = unsigned;
   SOLVER_LIBRARY_EXPORT explicit trivial_sat(uint64_t max_attempts = default_max_attempts);
 
+  void reserve_vars(unsigned var_count) { m_domains.reserve(var_count); }
+  [[nodiscard]] size_t num_vars() const { return m_domains.size(); }
   [[nodiscard]] variable_handle add_var(binary_domain domain = {})
   {
     m_domains.push_back(domain);
     return static_cast<variable_handle>(m_domains.size() - 1);
   }
+  [[nodiscard]] binary_domain get_current_domain(variable_handle var) const { return m_domains[var]; }
+  void reserve_clauses(unsigned clause_count);
   [[nodiscard]] clause &add_clause();
 
   solve_status solve();
@@ -98,6 +102,8 @@ private:
 inline trivial_sat::trivial_sat(uint64_t max_attempts) : m_max_attempts(max_attempts) {}
 
 inline trivial_sat::clause &trivial_sat::add_clause() { return m_clauses.emplace_back(); }
+
+inline void trivial_sat::reserve_clauses(unsigned clause_count) { m_clauses.reserve(clause_count); }
 
 /**
  * @brief Create a variables for the solver
