@@ -7,11 +7,15 @@
 namespace solver {
 
 enum class solve_status : int8_t { SAT, UNSAT, UNKNOWN };
-inline std::string to_string(solve_status status) {
+inline std::string to_string(solve_status status)
+{
   switch (status) {
-    case solve_status::SAT:     return "SAT";
-    case solve_status::UNSAT:   return "UNSAT";
-    case solve_status::UNKNOWN: return "UNKNOWN";
+  case solve_status::SAT:
+    return "SAT";
+  case solve_status::UNSAT:
+    return "UNSAT";
+  case solve_status::UNKNOWN:
+    return "UNKNOWN";
   }
   return "Unknown";
 }
