@@ -30,7 +30,7 @@ set_tests_properties(cli.trivial_sat PROPERTIES PASS_REGULAR_EXPRESSION "SAT v1=
 add_test(NAME cli.cdcl_sat COMMAND solver_exe --solver cdcl_sat ${TEST_INPUTS_DIR}/trivial.dimacs)
 set_tests_properties(cli.cdcl_sat PROPERTIES PASS_REGULAR_EXPRESSION "SAT v1=0 v2=1")
 
-add_test(NAME cli.empty COMMAND solver_exe --solver cdcl_sat /dev/null)
+add_test(NAME cli.empty COMMAND solver_exe --solver cdcl_sat ${TEST_INPUTS_DIR}/empty.dimacs)
 set_tests_properties(cli.empty PROPERTIES PASS_REGULAR_EXPRESSION "Invalid dimacs input format - all lines are either empty or commented out")
 
 add_test(NAME cli.cdcl_simple_unsat COMMAND solver_exe --solver cdcl_sat ${TEST_INPUTS_DIR}/simple_unsat.dimacs)
