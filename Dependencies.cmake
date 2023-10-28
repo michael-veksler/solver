@@ -24,71 +24,18 @@ function(solver_setup_dependencies)
       "SPDLOG_FMT_EXTERNAL ON")
   endif()
 
+  set(BOOST_MODULES_LIST numeric_conversion config core type_traits mpl preprocessor throw_exception assert)
   set(BOOST_VERSION 1.81.0)
-  if(NOT TARGET Boost::numeric_conversion)
-    CPMAddPackage(
-      NAME boost_numeric_conversion
-      VERSION ${BOOST_VERSION}
-      GITHUB_REPOSITORY "boostorg/numeric_conversion"
-      GIT_TAG "boost-${BOOST_VERSION}"
-    )
-  endif()
-  if(NOT TARGET Boost::config)
-    CPMAddPackage(
-      NAME boost_config
-      VERSION ${BOOST_VERSION}
-      GITHUB_REPOSITORY "boostorg/config"
-      GIT_TAG "boost-${BOOST_VERSION}"
-    )
-  endif()
-  if(NOT TARGET Boost::core)
-    CPMAddPackage(
-      NAME boost_core
-      VERSION ${BOOST_VERSION}
-      GITHUB_REPOSITORY "boostorg/core"
-      GIT_TAG "boost-${BOOST_VERSION}"
-    )
-  endif()
-  if(NOT TARGET Boost::type_traits)
-    CPMAddPackage(
-      NAME boost_type_traits
-      VERSION ${BOOST_VERSION}
-      GITHUB_REPOSITORY "boostorg/type_traits"
-      GIT_TAG "boost-${BOOST_VERSION}"
-    )
-  endif()
-  if(NOT TARGET Boost::mpl)
-    CPMAddPackage(
-      NAME boost_mpl
-      VERSION ${BOOST_VERSION}
-      GITHUB_REPOSITORY "boostorg/mpl"
-      GIT_TAG "boost-${BOOST_VERSION}"
-    )
-  endif()
-  if(NOT TARGET Boost::preprocessor)
-    CPMAddPackage(
-      NAME boost_preprocessor
-      VERSION ${BOOST_VERSION}
-      GITHUB_REPOSITORY "boostorg/preprocessor"
-      GIT_TAG "boost-${BOOST_VERSION}"
-    )
-  endif()
-  if(NOT TARGET Boost::throw_exception)
-    CPMAddPackage(
-      NAME boost_throw_exception
-      VERSION ${BOOST_VERSION}
-      GITHUB_REPOSITORY "boostorg/throw_exception"
-      GIT_TAG "boost-${BOOST_VERSION}"
-    )
-  endif()
-  if(NOT TARGET Boost::assert)
-    CPMAddPackage(
-      NAME boost_assert
-      VERSION ${BOOST_VERSION}
-      GITHUB_REPOSITORY "boostorg/assert"
-      GIT_TAG "boost-${BOOST_VERSION}"
-    )
-  endif()
+  foreach(boost_package ${BOOST_MODULES_LIST})
+    if(NOT TARGET Boost::${boost_package})
+      CPMAddPackage(
+        NAME boost_${boost_package}
+        VERSION ${BOOST_VERSION}
+        GITHUB_REPOSITORY "boostorg/${boost_package}"
+        GIT_TAG "boost-${BOOST_VERSION}"
+      )
+    endif()
+  endforeach()
 
   if(NOT TARGET Catch2::Catch2WithMain)
     cpmaddpackage("gh:catchorg/Catch2@3.3.2")

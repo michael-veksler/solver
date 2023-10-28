@@ -51,16 +51,12 @@ target_link_libraries(
           spdlog::spdlog
           Catch2::Catch2WithMain)
 
+set(BOOST_MODULES_LIST numeric_conversion config core type_traits mpl preprocessor throw_exception assert)
+set_boost_includes(BOOST_INCLUDE_DIRS "${BOOST_MODULES_LIST}")
+
 include_directories(
   SYSTEM
-  ${boost_numeric_conversion_SOURCE_DIR}/include
-  ${boost_config_SOURCE_DIR}/include
-  ${boost_core_SOURCE_DIR}/include
-  ${boost_type_traits_SOURCE_DIR}/include
-  ${boost_mpl_SOURCE_DIR}/include
-  ${boost_preprocessor_SOURCE_DIR}/include
-  ${boost_throw_exception_SOURCE_DIR}/include
-  ${boost_assert_SOURCE_DIR}/include
+  ${BOOST_IMCLUDE_DIRS}
   ${Catch2_SOURCE_DIR}/src
   ${spdlog_SOURCE_DIR}/include)
 
