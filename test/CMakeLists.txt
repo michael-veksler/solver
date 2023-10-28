@@ -54,9 +54,10 @@ target_link_libraries(
 set(BOOST_MODULES_LIST numeric_conversion config core type_traits mpl preprocessor throw_exception assert)
 set_boost_includes(BOOST_INCLUDE_DIRS "${BOOST_MODULES_LIST}")
 
+
 include_directories(
   SYSTEM
-  ${BOOST_IMCLUDE_DIRS}
+  ${BOOST_INCLUDE_DIRS}
   ${Catch2_SOURCE_DIR}/src
   ${spdlog_SOURCE_DIR}/include)
 

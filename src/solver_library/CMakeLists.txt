@@ -15,7 +15,7 @@ set_boost_includes(BOOST_INCLUDE_DIRS "${BOOST_MODULES_LIST}")
 
 include_directories(
   SYSTEM
-  ${BOOST_IMCLUDE_DIRS}
+  ${BOOST_INCLUDE_DIRS}
   ${FMT_SOURCE_DIR}/include)
 
 target_include_directories(solver_library ${WARNING_GUARD} PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
