@@ -101,7 +101,7 @@ TEST_CASE("Domain insertion", "[int8_domain]")
 
   entry.insert(1);
   REQUIRE(entry != uint8_domain());
-  domain_shuffled_insert(entry, uint8_full, 2);   // NOLINT(cert-msc32-c,cert-msc51-cpp)
+  domain_shuffled_insert(entry, uint8_full, 2);
   entry.insert(1);
   entry.insert(0);
   REQUIRE(entry == uint8_domain());
@@ -124,33 +124,33 @@ TEST_CASE("Domain forward iteration", "[int8_domain]")
   REQUIRE_THAT(std::vector(universal.begin(), universal.end()), Equals(uint8_full));
 }
 
-#if 0
 static std::vector<uint8_t> get_reverse(const uint8_domain & dom)
 {
   std::vector<uint8_t> ret(std::reverse_iterator<uint8_domain::iterator>{ dom.end() },
     std::reverse_iterator<uint8_domain::iterator>{ dom.begin() });
   return ret;
 }
+
 TEST_CASE("Domain backward iteration", "[int8_domain]")
 {
-  int8_domain::iterator iter;
-  REQUIRE(iter == int8_domain::iterator() );
+  uint8_domain::iterator iter;
   iter = zero.begin();
-  REQUIRE(*iter == false);
-  REQUIRE_THAT(get_reverse(zero), Equals(std::vector{ false }));
-  REQUIRE_THAT(get_reverse(one), Equals(std::vector{ true }));
-  REQUIRE_THAT(get_reverse(universal), Equals(std::vector{ true, false }));
+  REQUIRE(*iter == 0);
+  REQUIRE_THAT(get_reverse(zero), Equals(std::vector<uint8_t>{ 0 }));
+  REQUIRE_THAT(get_reverse(one), Equals(std::vector<uint8_t>{ 1 }));
+  auto reverse_full = uint8_full;
+  std::reverse(reverse_full.begin(), reverse_full.end());
+  REQUIRE_THAT(get_reverse(universal), Equals(reverse_full));
 }
 
 TEST_CASE("Domain assignment", "[int8_domain]")
 {
-  REQUIRE((zero == int8_domain(false) && one == int8_domain(true)));
-  int8_domain domain;
-  domain = false;
+  REQUIRE((zero == uint8_domain(0) && one == uint8_domain(1)));
+  uint8_domain domain;
+  domain = 0;
   REQUIRE(domain == zero);
-  domain = true;
+  domain = 1;
   REQUIRE(domain == one);
-  domain = false;
+  domain = 0;
   REQUIRE(domain == zero);
 }
-#endif
