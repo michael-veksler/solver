@@ -30,7 +30,8 @@ static const uint8_domain universal;// NOLINT(cert-err58-cpp)
 
 // NOLINTNEXTLINE(cert-err58-cpp)
 static const std::vector<uint8_t> uint8_full = [] {
-  std::vector<uint8_t> ret(1U << static_cast<unsigned>(std::numeric_limits<uint8_t>::digits));
+  constexpr auto bits_in_value = static_cast<unsigned>(std::numeric_limits<uint8_t>::digits) -1;
+  std::vector<uint8_t> ret(1U << bits_in_value);
   std::iota(ret.begin(), ret.end(), 0U);
   return ret;
 }();
@@ -46,6 +47,7 @@ static void domain_shuffled_insert(discrete_domain<ValueType> & domain,
   }
 }
 
+// NOLINTNEXTLINE(cert-err58-cpp)
 TEST_CASE("Universal domain", "[int8_domain]")
 {
   REQUIRE(uint8_domain().is_universal());
@@ -126,8 +128,10 @@ TEST_CASE("Domain forward iteration", "[int8_domain]")
 
 static std::vector<uint8_t> get_reverse(const uint8_domain & dom)
 {
-  std::vector<uint8_t> ret(std::reverse_iterator<uint8_domain::iterator>{ dom.end() },
-    std::reverse_iterator<uint8_domain::iterator>{ dom.begin() });
+  std::vector<uint8_t> ret;
+  for (auto iter = dom.end(); iter != dom.begin(); --iter) {
+   ret.push_back(*std::prev(iter);)
+  }
   return ret;
 }
 

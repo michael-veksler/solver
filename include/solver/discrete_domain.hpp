@@ -17,9 +17,6 @@
 
 namespace solver {
 
-template <std::integral ValueType>
-using discrete_domain_iterator = typename boost::icl::interval_set<ValueType>::element_const_iterator;
-
 
 template <std::integral ValueType=int32_t>
 SOLVER_LIBRARY_EXPORT class discrete_domain
@@ -32,8 +29,8 @@ public:
   using value_type = ValueType;
 
   constexpr discrete_domain() = default;
-  using iterator = discrete_domain_iterator<value_type>;
-  explicit constexpr discrete_domain(ValueType value) : m_set(value) {}
+  using iterator = typename boost::icl::interval_set<value_type>::element_const_iterator;
+  explicit constexpr discrete_domain(value_type value) : m_set(value) {}
   constexpr discrete_domain &operator=(value_type value) {
     m_set.clear();
     m_set.insert(value);
@@ -93,7 +90,7 @@ private:
   }
 
   static const interval_type UNIVERSAL_INTERVAL; // NOLINT(cert-err58-cpp)
-  boost::icl::interval_set<ValueType> m_set{UNIVERSAL_INTERVAL};
+  boost::icl::interval_set<value_type> m_set{UNIVERSAL_INTERVAL};
 };
 
 template <std::integral ValueType>
