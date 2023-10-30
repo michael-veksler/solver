@@ -30,7 +30,7 @@ static const uint8_domain universal;// NOLINT(cert-err58-cpp)
 
 // NOLINTNEXTLINE(cert-err58-cpp)
 static const std::vector<uint8_t> uint8_full = [] {
-  constexpr auto bits_in_value = static_cast<unsigned>(std::numeric_limits<uint8_t>::digits) -1;
+  constexpr auto bits_in_value = static_cast<unsigned>(std::numeric_limits<uint8_t>::digits);
   std::vector<uint8_t> ret(1U << bits_in_value);
   std::iota(ret.begin(), ret.end(), 0U);
   return ret;
@@ -129,8 +129,9 @@ TEST_CASE("Domain forward iteration", "[int8_domain]")
 static std::vector<uint8_t> get_reverse(const uint8_domain & dom)
 {
   std::vector<uint8_t> ret;
-  for (auto iter = dom.end(); iter != dom.begin(); --iter) {
-   ret.push_back(*std::prev(iter));
+  for (auto iter = dom.end(); iter != dom.begin();) {
+    --iter;
+   ret.push_back(*iter);
   }
   return ret;
 }
