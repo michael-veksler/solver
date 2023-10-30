@@ -130,7 +130,7 @@ static std::vector<uint8_t> get_reverse(const uint8_domain & dom)
 {
   std::vector<uint8_t> ret;
   for (auto iter = dom.end(); iter != dom.begin(); --iter) {
-   ret.push_back(*std::prev(iter);)
+   ret.push_back(*std::prev(iter));
   }
   return ret;
 }
