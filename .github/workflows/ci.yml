@@ -186,7 +186,8 @@ jobs:
       - name: Archive production artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: save-artifacts
+          name: artifacts-${{matrix.os}}-${{matrix.compiler}}-${{matrix.build_type}}-${{matrix.packaging_maintainer_mode}}
+
           path: |
             build/test/*.xml
           retention-days: 2
