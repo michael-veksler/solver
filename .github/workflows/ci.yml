@@ -183,6 +183,15 @@ jobs:
         run: |
           OpenCppCoverage.exe --export_type cobertura:coverage.xml --cover_children -- ctest -C ${{matrix.build_type}}
 
+      - name: Archive production artifacts
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v3
+        with:
+          name: save-artifacts
+          path: |
+            **/test/**/*.xml
+          retention-days: 2
+
       - name: CPack
         if: matrix.package_generator != ''
         working-directory: ./build
