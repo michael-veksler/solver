@@ -32,7 +32,7 @@ static const uint8_domain universal;// NOLINT(cert-err58-cpp)
 static const std::vector<uint8_t> uint8_full = [] {
   constexpr auto bits_in_value = static_cast<unsigned>(std::numeric_limits<uint8_t>::digits);
   std::vector<uint8_t> ret(1U << bits_in_value);
-  std::iota(ret.begin(), ret.end(), 0U);
+  std::iota(ret.begin(), ret.end(), static_cast<uint8_t>(0));
   return ret;
 }();
 
