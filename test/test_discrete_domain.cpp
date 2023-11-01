@@ -32,7 +32,7 @@ static const uint8_domain universal;// NOLINT(cert-err58-cpp)
 
 // NOLINTNEXTLINE(cert-err58-cpp)
 static const std::vector<uint8_t> uint8_full = [] {
-  std::vector<uint8_t> ret(uint8_domain::MAX_VALUE + 1);
+  std::vector<uint8_t> ret(uint8_domain::MAX_VALUE + 1, 0);
   std::iota(ret.begin(), ret.end(), static_cast<uint8_t>(0));
   return ret;
 }();
@@ -143,6 +143,8 @@ TEST_CASE("Domain forward iteration", "[int8_domain]")
   REQUIRE(one.begin() != one.end());
   REQUIRE_THAT(std::vector(zero.begin(), zero.end()), Equals(std::vector<uint8_t>{ 0 }));
   REQUIRE_THAT(std::vector(one.begin(), one.end()), Equals(std::vector<uint8_t>{ 1 }));
+  REQUIRE_THAT(std::vector(universal.m_set.begin(), universal.m_set.end()),
+              Equals(std::vector<uint8_domain::interval_type>{uint8_domain::interval_type::closed(0, uint8_domain::MAX_VALUE)}));
   REQUIRE_THAT(std::vector(universal.begin(), universal.end()), Equals(uint8_full));
 }
 
