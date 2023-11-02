@@ -27,7 +27,7 @@ static const uint8_domain empty = [] {
 
 static const uint8_domain zero(0);// NOLINT(cert-err58-cpp)
 static const uint8_domain one(1);// NOLINT(cert-err58-cpp)
-static const uint8_domain upper(uint8_domain::MAX_VALUE);// NOLINT(cert-err58-cpp)
+static const uint8_domain biggest(uint8_domain::MAX_VALUE);// NOLINT(cert-err58-cpp)
 static const uint8_domain universal;// NOLINT(cert-err58-cpp)
 
 // NOLINTNEXTLINE(cert-err58-cpp)
@@ -91,13 +91,13 @@ TEST_CASE("One domain", "[int8_domain]")
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
 TEST_CASE("Upper domain", "[int8_domain]")
 {
-  REQUIRE(!upper.is_universal());
-  REQUIRE(upper.is_singleton());
-  REQUIRE(!upper.empty());
-  REQUIRE((!upper.contains(0) && !upper.contains(1) && upper.contains(uint8_domain::MAX_VALUE)));
-  REQUIRE(min(upper) == uint8_domain::MAX_VALUE);
-  REQUIRE(max(upper) == uint8_domain::MAX_VALUE);
-  REQUIRE(get_value(upper));
+  REQUIRE(!biggest.is_universal());
+  REQUIRE(biggest.is_singleton());
+  REQUIRE(!biggest.empty());
+  REQUIRE((!biggest.contains(0) && !biggest.contains(1) && biggest.contains(uint8_domain::MAX_VALUE)));
+  REQUIRE(min(biggest) == uint8_domain::MAX_VALUE);
+  REQUIRE(max(biggest) == uint8_domain::MAX_VALUE);
+  REQUIRE(get_value(biggest));
 }
 
 TEST_CASE("Domain equality", "[int8_domain]")
