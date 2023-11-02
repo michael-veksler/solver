@@ -43,7 +43,7 @@ public:
     return *this;
   }
 
-  [[nodiscard]] constexpr bool is_universal() const { return boost::icl::contains(m_set, UNIVERSAL_INTERVAL); }
+  [[nodiscard]] constexpr bool is_universal() const { return boost::icl::contains(m_set, get_universal_interval()); }
   [[nodiscard]] constexpr bool empty() const { return m_set.empty(); }
   [[nodiscard]] constexpr bool is_singleton() const { return !is_universal() && m_set.size() == 1; }
   [[nodiscard]] iterator begin() const { return elements_begin(m_set); }
@@ -101,9 +101,12 @@ private:
     return interval_type::closed(lower, upper);
   }
 
-  static const interval_type UNIVERSAL_INTERVAL;// NOLINT(cert-err58-cpp)
+  static constexpr interval_type get_universal_interval()
+  {
+    return make_interval(MIN_VALUE, MAX_VALUE);
+  }
 public:
-  boost::icl::interval_set<value_type> m_set{ UNIVERSAL_INTERVAL };
+  boost::icl::interval_set<value_type> m_set{ get_universal_interval() };
 };
 
 template<std::integral ValueType>
@@ -112,11 +115,6 @@ template<std::integral ValueType>
   return min(domain);
 }
 
-
-template<std::integral ValueType>
-// NOLINTNEXTLINE(cert-err58-cpp)
-const typename discrete_domain<ValueType>::interval_type discrete_domain<ValueType>::UNIVERSAL_INTERVAL =
-  discrete_domain<ValueType>::make_interval(MIN_VALUE, MAX_VALUE);
 
 }// namespace solver
 
