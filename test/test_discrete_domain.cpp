@@ -148,6 +148,33 @@ TEST_CASE("Domain forward iteration", "[int8_domain]")
   REQUIRE_THAT(std::vector(universal.begin(), universal.end()), Equals(uint8_full));
 }
 
+TEST_CASE("A Domain forward iteration", "[int8_domain]")
+{
+  uint8_domain dom;
+
+  REQUIRE_THAT(std::vector(dom.m_set.begin(), dom.m_set.end()),
+              Equals(std::vector<uint8_domain::interval_type>{uint8_domain::interval_type::closed(0, uint8_domain::MAX_VALUE)}));
+}
+
+TEST_CASE("B Domain forward iteration", "[int8_domain]")
+{
+  using set_t = boost::icl::interval_set<uint8_t>;
+  set_t set;
+
+  set.insert(0);
+  REQUIRE_THAT(std::vector(set.begin(), set.end()),
+              Equals(std::vector<set_t::interval_type>{set_t::interval_type::closed(0, 0)}));
+  set.insert(1);
+  REQUIRE_THAT(std::vector(set.begin(), set.end()),
+              Equals(std::vector<set_t::interval_type>{set_t::interval_type::closed(0, 1)}));
+  constexpr int max_dom = 254;
+  for (int i=2; i <= max_dom; ++i) {
+    set.insert(uint8_t(i));
+    REQUIRE_THAT(std::vector(set.begin(), set.end()),
+                 Equals(std::vector<set_t::interval_type>{set_t::interval_type::closed(0, uint8_t(i))}));
+  }
+}
+
 static std::vector<uint8_t> get_reverse(const uint8_domain &dom)
 {
   std::vector<uint8_t> ret;
