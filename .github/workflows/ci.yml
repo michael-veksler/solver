@@ -184,13 +184,14 @@ jobs:
           OpenCppCoverage.exe --export_type cobertura:coverage.xml --cover_children -- ctest -C ${{matrix.build_type}}
 
       - name: Archive production artifacts
-        if: ${{ failure() }}
+        if: ${{ always() }}
         uses: actions/upload-artifact@v3
         with:
           name: artifacts-${{matrix.os}}-${{matrix.compiler}}-${{matrix.build_type}}-${{matrix.packaging_maintainer_mode}}
 
           path: |
             build/test/*.xml
+            */coverage.xml
           retention-days: 2
 
       - name: CPack
