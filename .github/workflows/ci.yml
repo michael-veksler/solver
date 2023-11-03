@@ -166,7 +166,7 @@ jobs:
       - name: Build
         # Execute the build.  You can specify a specific target with "--target <NAME>"
         run: |
-          cmake --build ./build --config ${{matrix.build_type}}
+          cmake --build ./build --config ${{matrix.build_type}} -v
 
       - name: Unix - Test and coverage
         if: runner.os != 'Windows'
@@ -191,7 +191,7 @@ jobs:
 
           path: |
             build/test/*.xml
-            */coverage.xml
+            build/coverage.xml
           retention-days: 2
 
       - name: CPack
