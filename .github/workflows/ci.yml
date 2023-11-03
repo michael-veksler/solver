@@ -166,7 +166,7 @@ jobs:
       - name: Build
         # Execute the build.  You can specify a specific target with "--target <NAME>"
         run: |
-          cmake --build ./build --config ${{matrix.build_type}} -v
+          cmake --build ./build --config ${{matrix.build_type}}
 
       - name: Unix - Test and coverage
         if: runner.os != 'Windows'
