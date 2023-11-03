@@ -209,6 +209,7 @@ jobs:
 
 
       - name: Publish to codecov
+        if: matrix.build_type == 'Debug'
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
