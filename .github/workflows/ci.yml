@@ -65,6 +65,7 @@ jobs:
 
           - os: macos-11
             enable_ipo: Off
+            gcov_executable: gcov
 
           # Set up preferred package generators, for given build configurations
           - build_type: Release
