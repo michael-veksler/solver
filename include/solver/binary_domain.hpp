@@ -10,9 +10,7 @@
 #include <vector>
 
 namespace solver {
-#ifndef NDEBUG
-#define NDEBUG
-#endif
+
 SOLVER_LIBRARY_EXPORT class binary_domain_iterator;
 
 SOLVER_LIBRARY_EXPORT class binary_domain
