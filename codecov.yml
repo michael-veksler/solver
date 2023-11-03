@@ -1,0 +1,20 @@
+coverage:
+  status:
+    project:
+      default:
+        # basic
+        target: auto
+        threshold: 0.25%
+        paths:
+          - "include/**/*"
+          - "src/**/*"
+          # Excluding the fuzz tests, since they are not always compiled and bring-in false-negative coverage
+          - "test/**/*"
+       # advanced settings
+#        branches:
+#          - main
+        if_ci_failed: error #success, failure, error, ignore
+        informational: false
+        only_pulls: false
+ignore:
+  - "fuzz_test/**/*"

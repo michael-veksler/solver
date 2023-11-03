@@ -56,15 +56,16 @@ jobs:
           # Add appropriate variables for gcov version required. This will intentionally break
           # if you try to use a compiler that does not have gcov set
           - compiler: gcc-11
-            gcov_executable: gcov
+            gcov_executable: gcov-11
             enable_ipo: On
 
           - compiler: llvm-15.0.2
             enable_ipo: Off
-            gcov_executable: "llvm-cov gcov"
+            gcov_executable: "llvm-cov-15 gcov"
 
           - os: macos-11
             enable_ipo: Off
+            gcov_executable: gcov
 
           # Set up preferred package generators, for given build configurations
           - build_type: Release
@@ -76,7 +77,7 @@ jobs:
             compiler: gcc-11
             generator: "Unix Makefiles"
             build_type: Debug
-            gcov_executable: gcov
+            gcov_executable: gcov-11
             packaging_maintainer_mode: On
             enable_ipo: Off
 
@@ -184,13 +185,14 @@ jobs:
           OpenCppCoverage.exe --export_type cobertura:coverage.xml --cover_children -- ctest -C ${{matrix.build_type}}
 
       - name: Archive production artifacts
-        if: ${{ failure() }}
+        if: ${{ always() }}
         uses: actions/upload-artifact@v3
         with:
           name: artifacts-${{matrix.os}}-${{matrix.compiler}}-${{matrix.build_type}}-${{matrix.packaging_maintainer_mode}}
 
           path: |
             build/test/*.xml
+            build/coverage.xml
           retention-days: 2
 
       - name: CPack
@@ -208,8 +210,10 @@ jobs:
 
 
       - name: Publish to codecov
+        if: matrix.build_type == 'Debug'
         uses: codecov/codecov-action@v3
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           flags: ${{ runner.os }}
           name: ${{ runner.os }}-coverage
           files: ./build/coverage.xml
