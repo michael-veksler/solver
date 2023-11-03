@@ -89,7 +89,7 @@ TEST_CASE("One domain", "[int8_domain]")
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
-TEST_CASE("Upper domain", "[int8_domain]")
+TEST_CASE("Biggest domain", "[int8_domain]")
 {
   REQUIRE(!biggest.is_universal());
   REQUIRE(biggest.is_singleton());
@@ -97,14 +97,14 @@ TEST_CASE("Upper domain", "[int8_domain]")
   REQUIRE((!biggest.contains(0) && !biggest.contains(1) && biggest.contains(uint8_domain::MAX_VALUE)));
   REQUIRE(min(biggest) == uint8_domain::MAX_VALUE);
   REQUIRE(max(biggest) == uint8_domain::MAX_VALUE);
-  REQUIRE(get_value(biggest));
+  REQUIRE(get_value(biggest) == uint8_domain::MAX_VALUE);
 }
 
 TEST_CASE("Domain equality", "[int8_domain]")
 {
   REQUIRE((empty != zero && empty != one && empty != uint8_domain() && empty == empty));
   REQUIRE((zero != one && zero != uint8_domain() && zero == zero));
-  REQUIRE((one != uint8_domain() && one == one));
+  REQUIRE((one != uint8_domain() && one == one && biggest == biggest));
   REQUIRE(uint8_domain() == uint8_domain());
 }
 
@@ -118,6 +118,9 @@ TEST_CASE("Domain insertion", "[int8_domain]")
   REQUIRE(entry == zero);
 
   entry.insert(1);
+  REQUIRE_THAT(std::vector<uint8_t>(entry.begin(), entry.end()), Equals(std::vector<uint8_t>{ 0, 1 }));
+  entry.insert(uint8_domain::MAX_VALUE);
+  REQUIRE_THAT(std::vector(entry.begin(), entry.end()), Equals(std::vector<uint8_t>{ 0, 1, uint8_domain::MAX_VALUE }));
   REQUIRE(entry != uint8_domain());
   domain_shuffled_insert(entry, uint8_full, 2);
   entry.insert(1);
@@ -130,7 +133,7 @@ TEST_CASE("Domain insertion", "[int8_domain]")
   REQUIRE_THROWS_AS(entry = std::numeric_limits<uint8_t>::max(), std::invalid_argument);
   REQUIRE(entry == 1);
   entry.insert(0);
-  domain_shuffled_insert(entry, uint8_full, 1);// NOLINT(cert-msc32-c,cert-msc51-cpp)
+  domain_shuffled_insert(entry, uint8_full, 3);// NOLINT(cert-msc32-c,cert-msc51-cpp)
 
   REQUIRE(entry == uint8_domain());
   REQUIRE_THROWS_AS(entry = std::numeric_limits<uint8_t>::max(), std::invalid_argument);
@@ -143,36 +146,8 @@ TEST_CASE("Domain forward iteration", "[int8_domain]")
   REQUIRE(one.begin() != one.end());
   REQUIRE_THAT(std::vector(zero.begin(), zero.end()), Equals(std::vector<uint8_t>{ 0 }));
   REQUIRE_THAT(std::vector(one.begin(), one.end()), Equals(std::vector<uint8_t>{ 1 }));
-  REQUIRE_THAT(std::vector(universal.m_set.begin(), universal.m_set.end()),
-              Equals(std::vector<uint8_domain::interval_type>{uint8_domain::interval_type::closed(0, uint8_domain::MAX_VALUE)}));
+  REQUIRE_THAT(std::vector(biggest.begin(), biggest.end()), Equals(std::vector<uint8_t>{ uint8_domain::MAX_VALUE }));
   REQUIRE_THAT(std::vector(universal.begin(), universal.end()), Equals(uint8_full));
-}
-
-TEST_CASE("A Domain forward iteration", "[int8_domain]")
-{
-  uint8_domain dom;
-
-  REQUIRE_THAT(std::vector(dom.m_set.begin(), dom.m_set.end()),
-              Equals(std::vector<uint8_domain::interval_type>{uint8_domain::interval_type::closed(0, uint8_domain::MAX_VALUE)}));
-}
-
-TEST_CASE("B Domain forward iteration", "[int8_domain]")
-{
-  using set_t = boost::icl::interval_set<uint8_t>;
-  set_t set;
-
-  set.insert(0);
-  REQUIRE_THAT(std::vector(set.begin(), set.end()),
-              Equals(std::vector<set_t::interval_type>{set_t::interval_type::closed(0, 0)}));
-  set.insert(1);
-  REQUIRE_THAT(std::vector(set.begin(), set.end()),
-              Equals(std::vector<set_t::interval_type>{set_t::interval_type::closed(0, 1)}));
-  constexpr int max_dom = 254;
-  for (int i=2; i <= max_dom; ++i) {
-    set.insert(uint8_t(i));
-    REQUIRE_THAT(std::vector(set.begin(), set.end()),
-                 Equals(std::vector<set_t::interval_type>{set_t::interval_type::closed(0, uint8_t(i))}));
-  }
 }
 
 static std::vector<uint8_t> get_reverse(const uint8_domain &dom)
@@ -192,6 +167,7 @@ TEST_CASE("Domain backward iteration", "[int8_domain]")
   REQUIRE(*iter == 0);
   REQUIRE_THAT(get_reverse(zero), Equals(std::vector<uint8_t>{ 0 }));
   REQUIRE_THAT(get_reverse(one), Equals(std::vector<uint8_t>{ 1 }));
+  REQUIRE_THAT(get_reverse(biggest), Equals(std::vector<uint8_t>{ uint8_domain::MAX_VALUE }));
   auto reverse_full = uint8_full;
   std::reverse(reverse_full.begin(), reverse_full.end());
   REQUIRE_THAT(get_reverse(universal), Equals(reverse_full));
@@ -208,6 +184,8 @@ TEST_CASE("Domain assignment", "[int8_domain]")
   REQUIRE(domain == one);
   domain = 0;
   REQUIRE(domain == zero);
+  domain = uint8_domain::MAX_VALUE;
+  REQUIRE(domain == biggest);
   REQUIRE_THROWS_AS(domain = std::numeric_limits<uint8_t>::max(), std::invalid_argument);
-  REQUIRE(domain == zero);
+  REQUIRE(domain == biggest);
 }

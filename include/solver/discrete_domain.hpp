@@ -20,10 +20,10 @@ namespace solver {
 
 template<std::integral ValueType = int32_t> SOLVER_LIBRARY_EXPORT class discrete_domain
 {
-public:
+private:
   using interval_type = typename boost::icl::interval_set<ValueType>::interval_type;
 
-//public:
+public:
   using value_type = ValueType;
   static constexpr ValueType MIN_VALUE = std::numeric_limits<ValueType>::min();
 
@@ -101,11 +101,7 @@ private:
     return interval_type::closed(lower, upper);
   }
 
-  static constexpr interval_type get_universal_interval()
-  {
-    return make_interval(MIN_VALUE, MAX_VALUE);
-  }
-public:
+  static constexpr interval_type get_universal_interval() { return make_interval(MIN_VALUE, MAX_VALUE); }
   boost::icl::interval_set<value_type> m_set{ get_universal_interval() };
 };
 
