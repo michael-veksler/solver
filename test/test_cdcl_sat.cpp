@@ -199,3 +199,12 @@ TEST_CASE("max attempts", "[cdcl_sat]")
     REQUIRE(expected_unknown.solver.solve() == solve_status::UNKNOWN);
   }
 }
+
+TEST_CASE("solve_status::to_string", "[cdcl_sat]")
+{
+  REQUIRE(to_string(solve_status::SAT) == "SAT");
+  REQUIRE(to_string(solve_status::UNSAT) == "UNSAT");
+  REQUIRE(to_string(solve_status::UNKNOWN) == "UNKNOWN");
+  REQUIRE(to_string(static_cast<solve_status>(5)) == "invalid(5)");
+
+}

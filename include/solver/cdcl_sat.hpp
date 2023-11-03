@@ -34,6 +34,10 @@ public:
   using variable_handle = uint32_t;
   using level_t = variable_handle;
   SOLVER_LIBRARY_EXPORT explicit cdcl_sat(uint64_t max_backtracks = default_max_backtracks);
+  void set_debug(bool is_debug) { m_debug = is_debug; }
+  [[nodiscard]] bool get_debug() const { return m_debug; }
+
+  [[nodiscard]] uint64_t get_max_backtracks() const { return m_max_backtracks; }
 
   void reserve_vars(unsigned var_count) { m_domains.reserve(var_count); }
   [[nodiscard]] size_t num_vars() const { return m_domains.size(); }
@@ -153,6 +157,7 @@ private:
   void validate_all_singletons() const;
 
   uint64_t m_max_backtracks;
+  bool m_debug = false;
   bool m_inside_solve = false;
 
   /**

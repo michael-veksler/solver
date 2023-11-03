@@ -36,6 +36,10 @@ set_tests_properties(cli.empty PROPERTIES PASS_REGULAR_EXPRESSION "Invalid dimac
 add_test(NAME cli.cdcl_simple_unsat COMMAND solver_exe --solver cdcl_sat ${TEST_INPUTS_DIR}/simple_unsat.dimacs)
 set_tests_properties(cli.cdcl_simple_unsat PROPERTIES PASS_REGULAR_EXPRESSION "UNSAT")
 
+add_test(NAME cli.cdcl_simple_unsat_debug COMMAND solver_exe --debug --solver cdcl_sat ${TEST_INPUTS_DIR}/simple_unsat.dimacs)
+set_tests_properties(cli.cdcl_simple_unsat_debug PROPERTIES PASS_REGULAR_EXPRESSION "initiating conflict analysis with conflict_clause.* cl={.*@.*}.*Resolving with.*Backtrack to level 0,")
+set_tests_properties(cli.cdcl_simple_unsat_debug PROPERTIES FAIL_REGULAR_EXPRESSION "initiating conflict analysis with conflict_clause.*initiating conflict analysis with conflict_clause")
+
 add_test(NAME cli.trivial_simple_unsat COMMAND solver_exe --solver trivial_sat ${TEST_INPUTS_DIR}/simple_unsat.dimacs)
 set_tests_properties(cli.trivial_simple_unsat PROPERTIES PASS_REGULAR_EXPRESSION "UNSAT")
 
