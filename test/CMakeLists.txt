@@ -51,7 +51,7 @@ target_link_libraries(
           spdlog::spdlog
           Catch2::Catch2WithMain)
 
-set(BOOST_MODULES_LIST numeric_conversion config core type_traits mpl preprocessor throw_exception assert)
+set(BOOST_MODULES_LIST numeric_conversion config core type_traits mpl preprocessor throw_exception assert icl static_assert concept_check detail move iterator range utility)
 set_boost_includes(BOOST_INCLUDE_DIRS "${BOOST_MODULES_LIST}")
 
 
