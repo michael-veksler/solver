@@ -3,7 +3,6 @@
 
 #include "binary_domain.hpp"
 #include "sat_types.hpp"
-#include <limits>
 #include <solver/solver_library_export.hpp>
 
 #include <array>
