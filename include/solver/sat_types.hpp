@@ -17,7 +17,7 @@ inline std::string to_string(solve_status status)
   case solve_status::UNKNOWN:
     return "UNKNOWN";
   }
-  return "Unknown";
+  return "invalid(" + std::to_string(static_cast<int8_t>(status)) + ")";
 }
 /**
  * @brief Literal types used for

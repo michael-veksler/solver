@@ -13,16 +13,18 @@
 #include <stdexcept>
 #include <tuple>
 
-// #define ENABLE_LOG_CDCL_SAT
-
-#ifdef ENABLE_LOG_CDCL_SAT
 #include "spdlog/spdlog.h"
-#define LOG_CDCL_SAT_INFO spdlog::info
-#else
-#define LOG_CDCL_SAT_INFO(...)
-#endif
 
 namespace solver {
+
+template<typename... Args>
+void inline log_info(const cdcl_sat & solver, spdlog::format_string_t<Args...> fmt, Args &&...args)
+{
+  if (solver.get_debug())
+  {
+    spdlog::info(fmt, std::forward<Args>(args)...);
+  }
+}
 
 std::vector<cdcl_sat::variable_handle> create_variables(cdcl_sat &solver, unsigned num_vars)
 {
@@ -34,7 +36,13 @@ std::vector<cdcl_sat::variable_handle> create_variables(cdcl_sat &solver, unsign
 
 void cdcl_sat::set_domain(variable_handle var, binary_domain domain, clause_handle by_clause)
 {
-  LOG_CDCL_SAT_INFO("L{}: Setting var{} := {} by clause={}", get_level(), var, domain.to_string(), by_clause);
+  if (get_debug()) {
+    if (by_clause == implication::DECISION) {
+      log_info(*this, "L{}: Setting var{} := {} by DECISION", get_level(), var, domain.to_string());
+    } else {
+      log_info(*this, "L{}: Setting var{} := {} by clause={}", get_level(), var, domain.to_string(), by_clause);
+    }
+  }
   if (m_domains[var] != domain) {
     m_domains[var] = domain;
     if (m_inside_solve) {
@@ -141,9 +149,11 @@ cdcl_sat::conflict_analysis_algo::conflict_analysis_algo(cdcl_sat &solver_in, cl
   : solver(solver_in)
 {
   const clause &conflicting_clause = solver.m_clauses.at(conflicting_clause_handle);
-  LOG_CDCL_SAT_INFO("initiating conflict analysis with conflict_clause {}={}",
-    conflicting_clause_handle,
-    conflicting_clause.to_string());
+  if (solver.get_debug()) {
+    log_info(solver, "initiating conflict analysis with conflicting_clause {}={}",
+      conflicting_clause_handle,
+      conflicting_clause.to_string());
+  }
   for (clause::literal_index_t literal_num = 0; literal_num != conflicting_clause.size(); ++literal_num) {
     const variable_handle var = conflicting_clause.get_variable(literal_num);
     const variable_handle implication_depth = solver.m_implications[var].implication_depth;
@@ -153,14 +163,18 @@ cdcl_sat::conflict_analysis_algo::conflict_analysis_algo(cdcl_sat &solver_in, cl
     assert(was_inserted);// NOLINT
     implication_depth_to_var.emplace(implication_depth, var);
   }
-  LOG_CDCL_SAT_INFO("cl={}", to_string());
+  if (solver.get_debug()) {
+    log_info(solver, "cl={}", to_string());
+  }
 }
 
 void cdcl_sat::conflict_analysis_algo::resolve(variable_handle pivot_var)
 {
   const implication imp = solver.m_implications.at(pivot_var);
   const clause &prev_clause = solver.m_clauses.at(imp.implication_cause);
-  LOG_CDCL_SAT_INFO("Resolving with {}={}", imp.clause, prev_clause.to_string());
+  if (solver.get_debug()) {
+    log_info(solver, "Resolving with {}={}", imp.implication_cause, prev_clause.to_string());
+  }
   for (clause::literal_index_t literal_num = 0; literal_num != prev_clause.size(); ++literal_num) {
     const bool is_positive = prev_clause.is_positive_literal(literal_num);
     const variable_handle var = prev_clause.get_variable(literal_num);
@@ -179,7 +193,9 @@ void cdcl_sat::conflict_analysis_algo::resolve(variable_handle pivot_var)
       }
     }
   }
-  LOG_CDCL_SAT_INFO("cl={}", to_string());
+  if (solver.get_debug()) {
+    log_info(solver, "cl={}", to_string());
+  }
 }
 
 std::string cdcl_sat::conflict_analysis_algo::to_string() const
@@ -204,14 +220,17 @@ std::string cdcl_sat::conflict_analysis_algo::to_string() const
   conflict_analysis_algo algo(*this, conflicting_clause);
   while (true) {
     algo.resolve(algo.get_latest_implied_var());
-    if (algo.empty()) {
-      return std::nullopt;
-    } else if (algo.size() == 1) {
-      return { { 0, algo.create_clause() } };
-    } else if (algo.is_unit()) {
-      return { { algo.get_level(1), algo.create_clause() } };
-    }
+    if (algo.empty() || algo.size() == 1 || algo.is_unit()) { break; }
   }
+  if (get_debug()) {
+    log_info(*this, "conflict clause={}", algo.to_string());
+  }
+  if (algo.size() == 1) {
+    return { { 0, algo.create_clause() } };
+  } else if (algo.is_unit()) {
+    return { { algo.get_level(1), algo.create_clause() } };
+  }
+  return std::nullopt;
 }
 
 [[nodiscard]] solve_status cdcl_sat::solve()
@@ -224,16 +243,16 @@ std::string cdcl_sat::conflict_analysis_algo::to_string() const
     std::optional<clause_handle> conflicting_clause = propagate();
     if (conflicting_clause) {
       if (get_level() == 0) {
-        LOG_CDCL_SAT_INFO("Failed at level 0, no solution possible");
+        log_info(*this, "Failed at level 0, no solution possible");
         return solve_status::UNSAT;
       }
       std::optional<std::pair<level_t, clause_handle>> conflict_info = analyze_conflict(*conflicting_clause);
       if (!conflict_info) {
-        LOG_CDCL_SAT_INFO("Conflict analysis detected the empty clause, no solution possible");
+        log_info(*this, "Conflict analysis detected the empty clause, no solution possible");
         return solve_status::UNSAT;
       }
       auto [level, learned_clause] = *conflict_info;
-      LOG_CDCL_SAT_INFO("Backtrack to level {}, generated clause={}", level, learned_clause);
+      log_info(*this, "Backtrack to level {}, generated clause={}", level, learned_clause);
       if (backtracks == m_max_backtracks) { return solve_status::UNKNOWN; }
 
       backtrack(level);
@@ -244,13 +263,6 @@ std::string cdcl_sat::conflict_analysis_algo::to_string() const
       ++backtracks;
     } else {
       if (!make_choice()) {
-#ifdef ENABLE_LOG_CDCL_SAT
-        std::string all;
-        for (unsigned i = 1; i != m_domains.size(); ++i) {
-          all += "V" + std::to_string(i) + '=' + std::to_string(static_cast<int>(m_domains[i].contains(true))) + ", ";
-        }
-        LOG_CDCL_SAT_INFO("solution: {}", all);
-#endif
         validate_all_singletons();
         return solve_status::SAT;
       }
@@ -287,13 +299,12 @@ bool cdcl_sat::make_choice()
     m_chosen_vars.empty() ? find_free_var(1) : find_free_var(m_chosen_vars.back());
 
   if (!chosen) {
-    LOG_CDCL_SAT_INFO("Nothing to choose");
+    log_info(*this, "Nothing to choose");
     return false;
   }
   m_chosen_vars.push_back(*chosen);
   set_domain(*chosen, binary_domain(false), implication::DECISION);
   assert(m_implications[*chosen].level == get_level());
-  LOG_CDCL_SAT_INFO("Chosen var{} := 0", *chosen);
   return true;
 }
 
@@ -395,7 +406,10 @@ solve_status cdcl_sat::clause::initial_propagate(propagation_context propagation
   m_watched_literals = { 0, size() - 1 };
   m_watched_literals[0] =
     linear_find_free_literal(propagation.solver, { 0U, static_cast<literal_index_t>(m_literals.size()) });
-  if (m_watched_literals[0] == m_literals.size()) { return solve_status::UNSAT; }
+  if (m_watched_literals[0] == m_literals.size()) {
+    log_info(propagation.solver, "Trivially UNSAT clause {} = {}", propagation.clause, to_string());
+    return solve_status::UNSAT;
+  }
   m_watched_literals[1] = linear_find_free_literal(
     propagation.solver, { m_watched_literals[0] + 1, static_cast<literal_index_t>(m_literals.size()) });
   if (m_watched_literals[1] == m_literals.size()) { return unit_propagate(propagation, m_watched_literals[0]); }
@@ -428,13 +442,15 @@ auto cdcl_sat::clause::find_different_watch(const cdcl_sat &solver, unsigned wat
 solve_status cdcl_sat::clause::propagate(propagation_context propagation, variable_handle triggering_var)
 {
   assert(m_watched_literals[0] < m_watched_literals[1] && m_watched_literals[1] < size());// NOLINT
-  LOG_CDCL_SAT_INFO("propagating {} {}", propagation.clause, to_string());
+  if (propagation.solver.get_debug()) {
+    log_info(propagation.solver, "propagating {} {}", propagation.clause, to_string());
+  }
 
   const unsigned watch_index = get_variable(m_watched_literals[0]) == triggering_var ? 0 : 1;
 
   const literal_index_t next_watched_literal = find_different_watch(propagation.solver, watch_index);
   if (next_watched_literal != size()) {
-    LOG_CDCL_SAT_INFO("updating a watch of {} from {} to {}",
+    log_info(propagation.solver, "updating a watch of {} from {} to {}",
       propagation.clause,
       m_watched_literals.at(watch_index),
       next_watched_literal);
@@ -444,15 +460,7 @@ solve_status cdcl_sat::clause::propagate(propagation_context propagation, variab
     if (m_watched_literals[0] > m_watched_literals[1]) { std::swap(m_watched_literals[0], m_watched_literals[1]); }
     return solve_status::UNKNOWN;
   }
-  switch (literal_state(propagation.solver, m_watched_literals.at(1 - watch_index))) {
-  case solve_status::UNSAT:
-    return solve_status::UNSAT;
-  case solve_status::SAT:
-    return solve_status::SAT;
-  case solve_status::UNKNOWN:
-    return unit_propagate(propagation, m_watched_literals.at(1 - watch_index));
-  }
-  abort();
+  return unit_propagate(propagation, m_watched_literals.at(1 - watch_index));
 }
 
 solve_status cdcl_sat::clause::unit_propagate(propagation_context propagation, literal_index_t literal_num) const
@@ -461,28 +469,28 @@ solve_status cdcl_sat::clause::unit_propagate(propagation_context propagation, l
   const bool is_positive = is_positive_literal(literal_num);
   const binary_domain domain = propagation.solver.get_current_domain(var);
   if (!domain.contains(is_positive)) {
-    LOG_CDCL_SAT_INFO("conflicting literal {}", literal_num);
+    log_info(propagation.solver, "conflicting literal {}", is_positive ? static_cast<int>(var): -static_cast<int>(var));
 
     return solve_status::UNSAT;
   }
   if (domain == binary_domain(is_positive)) {
-    LOG_CDCL_SAT_INFO("Trivially SAT literal {}", literal_num);
+    log_info(propagation.solver, "Trivially SAT literal {}", literal_num);
     return solve_status::SAT;
   }
   propagation.solver.set_domain(var, binary_domain(is_positive), propagation.clause);
 
-  LOG_CDCL_SAT_INFO("Propagating literal {} <-- {}", literal_num, is_positive);
+  log_info(propagation.solver, "Propagating literal {} <-- {}", literal_num, is_positive);
   return solve_status::SAT;
 }
 
 void cdcl_sat::backtrack(level_t backtrack_level)
 {
   assert(get_level() > 0);
-  LOG_CDCL_SAT_INFO("Backtrack to level {}", backtrack_level);
+  log_info(*this, "Backtrack to level {}", backtrack_level);
   while (!m_implied_vars.empty()) {
     const variable_handle reset_var = m_implied_vars.back();
     if (m_implications[reset_var].level <= backtrack_level) { break; }
-    LOG_CDCL_SAT_INFO("Resetting var{}", reset_var);
+    log_info(*this, "Resetting var{}", reset_var);
     m_implied_vars.pop_back();
     m_domains[reset_var] = binary_domain();
     m_implications[reset_var] = implication();
