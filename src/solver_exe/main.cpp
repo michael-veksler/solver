@@ -29,6 +29,8 @@ template<typename solver_type> class solver_main
 public:
   template<typename... Args> explicit solver_main(Args &&...args) : m_solver(std::forward<Args>(args)...) {}
 
+  void set_debug(bool is_debug) { m_solver.set_debug(is_debug); }
+
   void solve(const std::string &filename)
   {
     parse(filename);
@@ -114,11 +116,17 @@ int main(int argc, const char **argv)
       ->transform(CLI::CheckedTransformer(solver_kind_map, CLI::ignore_case));
     std::string input;
     app.add_option("--input,input", input, "Input file")->required();
+    bool is_debug = false;
+    app.add_flag("--debug", is_debug, "Enable debug output");
 
     CLI11_PARSE(app, argc, argv);
     switch (requested_solver) {
     case solver_kind::cdcl_sat:
-      solver_main<solver::cdcl_sat>().solve(input);
+      {
+        solver_main<solver::cdcl_sat> solver_tester;
+        solver_tester.set_debug(is_debug);
+        solver_tester.solve(input);
+      }
       break;
     case solver_kind::trivial_sat:
       solver_main<solver::trivial_sat>().solve(input);
