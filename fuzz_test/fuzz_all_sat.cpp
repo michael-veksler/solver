@@ -9,14 +9,14 @@
 using namespace solver;
 
 namespace {
+
 struct random_stream
 {
-  random_stream(const uint8_t *Data, size_t Size) : data_span(Data, Size) {}
-
+  random_stream(const uint8_t *data, size_t size) : data_span(data, size) {}
 
   template<typename T>  std::optional<T> get()
   {
-    if (random_data.data_span.size() < sizeof(T)) { return std::nullopt; }
+    if (data_span.size() < sizeof(T)) { return std::nullopt; }
     const T *ret = static_cast<const T *>(static_cast<const void *>(data_span.data()));
     data_span = data_span.subspan(sizeof(T));
     return *ret;
@@ -85,7 +85,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
   const auto cdcl_variables = create_variables(cdcl_solver, num_vars);
   std::vector<std::vector<literal_type>> clauses;
   while (true) {
-    const std::vector<literal_type> &literals = clauses.emplace_back(generate_literals(data_span, num_vars));
+    const std::vector<literal_type> &literals = clauses.emplace_back(generate_literals(random_data, num_vars));
     if (literals.empty()) {
       clauses.pop_back();
       break;
