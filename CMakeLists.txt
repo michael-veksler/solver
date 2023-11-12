@@ -31,6 +31,27 @@ solver_setup_options()
 solver_global_options()
 include(Dependencies.cmake)
 solver_setup_dependencies()
+# create a list of boost include paths out of a list of modules.
+# Example1:  set_boost_includes(DIR_LIST_VAR "${MODULE_LIST_VAR}")
+# Example2:  set_boost_includes(DIR_LIST_VAR "core;assert")
+# NOTE: There must be quotes with the ${MODULE_LIST_VAR}
+function(set_boost_includes out_var_name modules_list)
+  set(include_dirs "")
+  foreach(module ${modules_list})
+    set(source_dir "${boost_${module}_SOURCE_DIR}")
+
+    if ("${source_dir}" STREQUAL "")
+      message(SEND_ERROR "Boost module '${module}' is unknown")
+    else()
+      set(include_dirs ${include_dirs} ${source_dir}/include)
+    endif()
+  endforeach()
+  set(${out_var_name} ${include_dirs} PARENT_SCOPE)
+endfunction()
+set(BOOST_MODULES_LIST numeric_conversion config core type_traits mpl preprocessor throw_exception assert icl static_assert concept_check detail move iterator range utility)
+set_boost_includes(BOOST_INCLUDE_DIRS "${BOOST_MODULES_LIST}")
+include_directories(SYSTEM ${BOOST_INCLUDE_DIRS})
+
 
 solver_local_options()
 

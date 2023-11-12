@@ -11,10 +11,13 @@ target_link_libraries(
   PRIVATE solver_options
           solver_warnings
           solver::solver_library
+          spdlog::spdlog
           fmt::fmt
           -coverage
           -fsanitize=fuzzer)
 target_compile_options(fuzz_tester PRIVATE -fsanitize=fuzzer)
+
+target_link_system_libraries(solver_library PRIVATE spdlog::spdlog)
 
 # Allow short runs during automated testing to see if something new breaks
 set(FUZZ_RUNTIME

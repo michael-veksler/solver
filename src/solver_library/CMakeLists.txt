@@ -9,13 +9,8 @@ add_library(solver::solver_library ALIAS solver_library)
 target_link_libraries(solver_library PRIVATE solver_options solver_warnings)
 target_link_system_libraries(solver_library PRIVATE spdlog::spdlog)
 
-set(BOOST_MODULES_LIST numeric_conversion config core type_traits mpl preprocessor throw_exception assert)
-
-set_boost_includes(BOOST_INCLUDE_DIRS "${BOOST_MODULES_LIST}")
-
 include_directories(
   SYSTEM
-  ${BOOST_INCLUDE_DIRS}
   ${FMT_SOURCE_DIR}/include)
 
 target_include_directories(solver_library ${WARNING_GUARD} PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
