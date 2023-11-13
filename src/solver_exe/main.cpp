@@ -1,4 +1,5 @@
 #include "solver/cdcl_sat.hpp"
+#include "solver/binary_domain.hpp"
 #include "solver/sat_types.hpp"
 #include "solver/trivial_sat.hpp"
 #include <CLI/CLI.hpp>
@@ -8,6 +9,7 @@
 #include <functional>
 #include <iostream>
 #include <map>
+#include <fmt/format.h>
 #include <optional>
 #include <ranges>
 #include <spdlog/spdlog.h>
@@ -123,7 +125,7 @@ int main(int argc, const char **argv)
     switch (requested_solver) {
     case solver_kind::cdcl_sat:
       {
-        solver_main<solver::cdcl_sat> solver_tester;
+        solver_main<solver::cdcl_sat<>> solver_tester;
         solver_tester.set_debug(is_debug);
         solver_tester.solve(input);
       }
