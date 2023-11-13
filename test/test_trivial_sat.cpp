@@ -13,7 +13,7 @@ TEST_CASE("Initially set problem", "[trivial_sat]") // NOLINT
   trivial_sat sat;
   const trivial_sat::variable_handle var = sat.add_var(binary_domain(true));
   REQUIRE(sat.solve() == solve_status::SAT);
-  REQUIRE(sat.get_value(var));
+  REQUIRE(sat.get_variable_value(var));
 }
 
 TEST_CASE("Trivial tiny problem false", "[trivial_sat]")
@@ -22,7 +22,7 @@ TEST_CASE("Trivial tiny problem false", "[trivial_sat]")
   const trivial_sat::variable_handle var = sat.add_var();
   sat.add_clause().add_literal(var, false);
   REQUIRE(sat.solve() == solve_status::SAT);
-  REQUIRE(!sat.get_value(var));
+  REQUIRE(!sat.get_variable_value(var));
 }
 
 TEST_CASE("Trivial tiny problem true", "[trivial_sat]")
@@ -31,7 +31,7 @@ TEST_CASE("Trivial tiny problem true", "[trivial_sat]")
   const trivial_sat::variable_handle var = sat.add_var();
   sat.add_clause().add_literal(var, true);
   REQUIRE(sat.solve() == solve_status::SAT);
-  REQUIRE(sat.get_value(var));
+  REQUIRE(sat.get_variable_value(var));
 }
 
 TEST_CASE("Trivial tiny problem unsat", "[trivial_sat]")
@@ -57,7 +57,7 @@ TEST_CASE("Trivial implication problem", "[trivial_sat]")
 
   sat.add_clause().add_literal(vars[0], true);
   REQUIRE(sat.solve() == solve_status::SAT);
-  REQUIRE((sat.get_value(vars[0]) && sat.get_value(vars[1]) && sat.get_value(vars[2])));
+  REQUIRE((sat.get_variable_value(vars[0]) && sat.get_variable_value(vars[1]) && sat.get_variable_value(vars[2])));
 }
 
 namespace {
@@ -151,7 +151,7 @@ TEST_CASE("all_diff problem", "[trivial_sat]")// NOLINT
   for (one_hot_int &integer_value : problem.integer_values) {
     bool found_bit_in_value = false;
     for (unsigned i = 0; i != integer_value.vars.size(); ++i) {
-      const bool bit_value = problem.solver.get_value(integer_value.vars[i]);
+      const bool bit_value = problem.solver.get_variable_value(integer_value.vars[i]);
       REQUIRE_FALSE((found_bit[i] && bit_value));
       found_bit[i] = bit_value || found_bit[i];
 

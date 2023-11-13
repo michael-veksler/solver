@@ -63,7 +63,7 @@ static void validate_solution(const auto &solver, const auto & variables, const 
 {
   const bool pass = std::ranges::all_of(clauses, [&solver, &variables](auto &clause) {
     return std::ranges::any_of(
-      clause, [&solver,&variables](literal_type literal) { return solver.get_value(variables[literal.variable]) == literal.is_positive; });
+      clause, [&solver,&variables](literal_type literal) { return solver.get_variable_value(variables[literal.variable]) == literal.is_positive; });
   });
   if (!pass) { abort(); }
 }
