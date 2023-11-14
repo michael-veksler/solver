@@ -35,6 +35,7 @@ public:
   using iterator = typename boost::icl::interval_set<value_type>::element_const_iterator;
   explicit constexpr discrete_domain(value_type value) : m_set() { *this = value; }
 
+  // cppcheck-suppress noExplicitConstructor ; cppcheck and clang-tidy disagree on this
   constexpr discrete_domain(std::initializer_list<value_type> values) : m_set()
   {
     for (auto value : values) { insert(value); }
