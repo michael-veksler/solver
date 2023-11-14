@@ -98,7 +98,9 @@ struct all_different_problem
   void constrain_at_least_one(const one_hot_int &integer_value)
   {
     cdcl_sat<binary_strategy>::clause &at_least_one = solver.add_clause();
-    for (const cdcl_sat<binary_strategy>::variable_handle var : integer_value.vars) { at_least_one.add_literal(var, true); }
+    for (const cdcl_sat<binary_strategy>::variable_handle var : integer_value.vars) {
+      at_least_one.add_literal(var, true);
+    }
   }
   void constrain_at_most_one(const one_hot_int &integer_value)
   {

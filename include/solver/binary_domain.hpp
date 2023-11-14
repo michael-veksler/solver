@@ -134,8 +134,7 @@ private:
 inline binary_domain::iterator binary_domain::begin() const { return iterator{ *this }; }
 inline binary_domain::iterator binary_domain::end() const { return iterator{ *this, true }; }
 
-template<std::integral ValueType>
-[[nodiscard]] inline constexpr ValueType get_value(const binary_domain &domain)
+template<std::integral ValueType> [[nodiscard]] inline constexpr ValueType get_value(const binary_domain &domain)
 {
   return min(domain);
 }

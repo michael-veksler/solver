@@ -5,9 +5,9 @@
 #include "sat_types.hpp"
 #include "solver/sat_types.hpp"
 #include <boost/numeric/conversion/cast.hpp>
+#include <solver/binary_domain.hpp>
 #include <solver/solver_library_export.hpp>
 #include <solver/state_saver.hpp>
-#include <solver/binary_domain.hpp>
 
 #include <algorithm>
 #include <array>
@@ -31,10 +31,8 @@
 
 namespace solver {
 
-template <typename T>
-concept cdcl_sat_strategy = requires(T t) {
-  typename T::domain_type;
-};
+template<typename T>
+concept cdcl_sat_strategy = requires(T t) { typename T::domain_type; };
 
 struct binary_strategy
 {
@@ -45,8 +43,7 @@ struct binary_strategy
  * @brief A Conflict-Driven Clause-Learning SAT solver.
  *
  */
-template <cdcl_sat_strategy Strategy = binary_strategy>
-SOLVER_LIBRARY_EXPORT class cdcl_sat
+template<cdcl_sat_strategy Strategy = binary_strategy> SOLVER_LIBRARY_EXPORT class cdcl_sat
 {
 private:
   static constexpr uint64_t default_max_backtracks = static_cast<uint64_t>(1) << 32U;
@@ -66,7 +63,7 @@ public:
 
   void reserve_vars(unsigned var_count) { m_domains.reserve(var_count); }
   [[nodiscard]] size_t num_vars() const { return m_domains.size(); }
-  [[nodiscard]] variable_handle add_var(domain_type domain = {0, 1})
+  [[nodiscard]] variable_handle add_var(domain_type domain = { 0, 1 })
   {
     m_domains.push_back(std::move(domain));
     return static_cast<variable_handle>(m_domains.size() - 1);
@@ -82,7 +79,7 @@ public:
 
   [[nodiscard]] size_t count_variables() const { return m_domains.size(); }
 
-  [[nodiscard]] const domain_type & get_current_domain(variable_handle var) const { return m_domains[var]; }
+  [[nodiscard]] const domain_type &get_current_domain(variable_handle var) const { return m_domains[var]; }
   /**
    * @brief Set the domain of a variable.
    *
@@ -210,8 +207,7 @@ private:
 };
 
 
-template <cdcl_sat_strategy Strategy>
-class cdcl_sat<Strategy>::clause
+template<cdcl_sat_strategy Strategy> class cdcl_sat<Strategy>::clause
 {
 public:
   using literal_index_t = uint32_t;
@@ -285,14 +281,19 @@ private:
   std::array<literal_index_t, 2> m_watched_literals = { 0, 0 };
 };
 
-template <cdcl_sat_strategy Strategy>
-inline cdcl_sat<Strategy>::cdcl_sat(uint64_t max_backtracks) : m_max_backtracks(max_backtracks) {}
+template<cdcl_sat_strategy Strategy>
+inline cdcl_sat<Strategy>::cdcl_sat(uint64_t max_backtracks) : m_max_backtracks(max_backtracks)
+{}
 
-template <cdcl_sat_strategy Strategy>
-inline void cdcl_sat<Strategy>::reserve_clauses(unsigned int clause_count) { m_clauses.reserve(clause_count); }
+template<cdcl_sat_strategy Strategy> inline void cdcl_sat<Strategy>::reserve_clauses(unsigned int clause_count)
+{
+  m_clauses.reserve(clause_count);
+}
 
-template <cdcl_sat_strategy Strategy>
-inline auto cdcl_sat<Strategy>::add_clause() -> cdcl_sat::clause & { return m_clauses.emplace_back(); }
+template<cdcl_sat_strategy Strategy> inline auto cdcl_sat<Strategy>::add_clause() -> cdcl_sat::clause &
+{
+  return m_clauses.emplace_back();
+}
 
 template<cdcl_sat_strategy Strategy, typename... Args>
 void inline log_info(const cdcl_sat<Strategy> &solver, spdlog::format_string_t<Args...> fmt, Args &&...args)
@@ -308,8 +309,9 @@ void inline log_info(const cdcl_sat<Strategy> &solver, spdlog::format_string_t<A
  * @return The created variables
  */
 
-template <cdcl_sat_strategy Strategy>
-std::vector<typename cdcl_sat<Strategy>::variable_handle> create_variables(cdcl_sat<Strategy> &solver, unsigned num_vars)
+template<cdcl_sat_strategy Strategy>
+std::vector<typename cdcl_sat<Strategy>::variable_handle> create_variables(cdcl_sat<Strategy> &solver,
+  unsigned num_vars)
 {
   std::vector<typename cdcl_sat<Strategy>::variable_handle> variables;// NOLINT
   variables.reserve(num_vars);
@@ -317,7 +319,7 @@ std::vector<typename cdcl_sat<Strategy>::variable_handle> create_variables(cdcl_
   return variables;
 }
 
-template <cdcl_sat_strategy Strategy>
+template<cdcl_sat_strategy Strategy>
 void cdcl_sat<Strategy>::set_domain(variable_handle var, domain_type domain, clause_handle by_clause)
 {
   if (get_debug()) {
@@ -344,8 +346,7 @@ void cdcl_sat<Strategy>::set_domain(variable_handle var, domain_type domain, cla
  *
  * It contains the currently generated clause, in the form of literals.
  */
-template <cdcl_sat_strategy Strategy>
-struct cdcl_sat<Strategy>::conflict_analysis_algo
+template<cdcl_sat_strategy Strategy> struct cdcl_sat<Strategy>::conflict_analysis_algo
 {
   /**
    * @brief Construct a new conflict analysis algo object
@@ -430,7 +431,7 @@ struct cdcl_sat<Strategy>::conflict_analysis_algo
   std::map<variable_handle, variable_handle> implication_depth_to_var;
 };
 
-template <cdcl_sat_strategy Strategy>
+template<cdcl_sat_strategy Strategy>
 cdcl_sat<Strategy>::conflict_analysis_algo::conflict_analysis_algo(cdcl_sat &solver_in,
   clause_handle conflicting_clause_handle)
   : solver(solver_in)
@@ -454,8 +455,7 @@ cdcl_sat<Strategy>::conflict_analysis_algo::conflict_analysis_algo(cdcl_sat &sol
   if (solver.get_debug()) { log_info(solver, "cl={}", to_string()); }
 }
 
-template <cdcl_sat_strategy Strategy>
-void cdcl_sat<Strategy>::conflict_analysis_algo::resolve(variable_handle pivot_var)
+template<cdcl_sat_strategy Strategy> void cdcl_sat<Strategy>::conflict_analysis_algo::resolve(variable_handle pivot_var)
 {
   const implication imp = solver.m_implications.at(pivot_var);
   const clause &prev_clause = solver.m_clauses.at(imp.implication_cause);
@@ -481,8 +481,7 @@ void cdcl_sat<Strategy>::conflict_analysis_algo::resolve(variable_handle pivot_v
   if (solver.get_debug()) { log_info(solver, "cl={}", to_string()); }
 }
 
-template <cdcl_sat_strategy Strategy>
-std::string cdcl_sat<Strategy>::conflict_analysis_algo::to_string() const
+template<cdcl_sat_strategy Strategy> std::string cdcl_sat<Strategy>::conflict_analysis_algo::to_string() const
 {
   std::string ret = "{";
   const char *sep = "";
@@ -497,7 +496,7 @@ std::string cdcl_sat<Strategy>::conflict_analysis_algo::to_string() const
   return ret;
 }
 
-template <cdcl_sat_strategy Strategy>
+template<cdcl_sat_strategy Strategy>
 auto cdcl_sat<Strategy>::analyze_conflict(clause_handle conflicting_clause)
   -> std::optional<std::pair<level_t, clause_handle>>
 {
@@ -515,8 +514,7 @@ auto cdcl_sat<Strategy>::analyze_conflict(clause_handle conflicting_clause)
   return std::nullopt;
 }
 
-template <cdcl_sat_strategy Strategy>
-solve_status cdcl_sat<Strategy>::solve()
+template<cdcl_sat_strategy Strategy> solve_status cdcl_sat<Strategy>::solve()
 {
   const state_saver inside_solve_saver(m_inside_solve);
   m_inside_solve = true;
@@ -553,8 +551,7 @@ solve_status cdcl_sat<Strategy>::solve()
   }
 }
 
-template <cdcl_sat_strategy Strategy>
-void cdcl_sat<Strategy>::validate_all_singletons() const
+template<cdcl_sat_strategy Strategy> void cdcl_sat<Strategy>::validate_all_singletons() const
 {
   const auto not_singleton_iter = std::find_if(
     std::next(m_domains.begin()), m_domains.end(), [](binary_domain domain) { return !domain.is_singleton(); });
@@ -564,7 +561,7 @@ void cdcl_sat<Strategy>::validate_all_singletons() const
   }
 }
 
-template <cdcl_sat_strategy Strategy>
+template<cdcl_sat_strategy Strategy>
 auto cdcl_sat<Strategy>::find_free_var(variable_handle search_start) const -> std::optional<variable_handle>
 {
   for (variable_handle var = search_start; var != m_domains.size(); ++var) {
@@ -578,8 +575,7 @@ auto cdcl_sat<Strategy>::find_free_var(variable_handle search_start) const -> st
   return std::nullopt;
 }
 
-template <cdcl_sat_strategy Strategy>
-bool cdcl_sat<Strategy>::make_choice()
+template<cdcl_sat_strategy Strategy> bool cdcl_sat<Strategy>::make_choice()
 {
   const std::optional<variable_handle> chosen =
     m_chosen_vars.empty() ? find_free_var(1) : find_free_var(m_chosen_vars.back());
@@ -595,8 +591,7 @@ bool cdcl_sat<Strategy>::make_choice()
 }
 
 
-template <cdcl_sat_strategy Strategy>
-bool cdcl_sat<Strategy>::initial_propagate()
+template<cdcl_sat_strategy Strategy> bool cdcl_sat<Strategy>::initial_propagate()
 {
   m_dirty_variables.clear();
   m_implications.clear();
@@ -615,8 +610,7 @@ bool cdcl_sat<Strategy>::initial_propagate()
   return !conflicting_clause;
 }
 
-template <cdcl_sat_strategy Strategy>
-auto cdcl_sat<Strategy>::propagate() -> std::optional<clause_handle>
+template<cdcl_sat_strategy Strategy> auto cdcl_sat<Strategy>::propagate() -> std::optional<clause_handle>
 {
   while (!m_dirty_variables.empty()) {
     const variable_handle var = m_dirty_variables.front();
@@ -641,7 +635,7 @@ auto cdcl_sat<Strategy>::propagate() -> std::optional<clause_handle>
   return std::nullopt;
 }
 
-template <cdcl_sat_strategy Strategy>
+template<cdcl_sat_strategy Strategy>
 auto cdcl_sat<Strategy>::clause::linear_find_free_literal(const cdcl_sat<Strategy> &solver,
   std::pair<literal_index_t, literal_index_t> literal_range) const -> literal_index_t
 {
@@ -650,18 +644,18 @@ auto cdcl_sat<Strategy>::clause::linear_find_free_literal(const cdcl_sat<Strateg
   for (literal_index_t literal_num = literal_range.first; literal_num != literal_range.second; ++literal_num) {
     const variable_handle var = get_variable(literal_num);
     const bool is_positive = is_positive_literal(literal_num);
-    const domain_type & domain = solver.get_current_domain(var);
+    const domain_type &domain = solver.get_current_domain(var);
     if (domain.contains(is_positive)) { return literal_num; }
   }
   return literal_range.second;
 }
 
-template <cdcl_sat_strategy Strategy>
+template<cdcl_sat_strategy Strategy>
 solve_status cdcl_sat<Strategy>::clause::literal_state(const cdcl_sat &solver, literal_index_t literal_num) const
 {
   const variable_handle var = get_variable(literal_num);
   const bool is_positive = is_positive_literal(literal_num);
-  const domain_type & domain = solver.get_current_domain(var);
+  const domain_type &domain = solver.get_current_domain(var);
   if (domain.is_singleton() && get_value(domain) == is_positive) {
     return solve_status::SAT;
   } else if (domain.is_singleton() && get_value(domain) == !is_positive) {
@@ -671,8 +665,7 @@ solve_status cdcl_sat<Strategy>::clause::literal_state(const cdcl_sat &solver, l
   }
 }
 
-template <cdcl_sat_strategy Strategy>
-bool cdcl_sat<Strategy>::clause::remove_duplicate_variables()
+template<cdcl_sat_strategy Strategy> bool cdcl_sat<Strategy>::clause::remove_duplicate_variables()
 {
   std::set<int> encountered_literals;
   std::vector<int> replacement_literals;
@@ -691,7 +684,7 @@ bool cdcl_sat<Strategy>::clause::remove_duplicate_variables()
   return true;
 }
 
-template <cdcl_sat_strategy Strategy>
+template<cdcl_sat_strategy Strategy>
 solve_status cdcl_sat<Strategy>::clause::initial_propagate(propagation_context propagation)
 {
   if (!remove_duplicate_variables()) { return solve_status::SAT; }
@@ -712,7 +705,7 @@ solve_status cdcl_sat<Strategy>::clause::initial_propagate(propagation_context p
   return solve_status::UNKNOWN;
 }
 
-template <cdcl_sat_strategy Strategy>
+template<cdcl_sat_strategy Strategy>
 auto cdcl_sat<Strategy>::clause::find_different_watch(const cdcl_sat &solver, unsigned watch_index) const
   -> literal_index_t
 {
@@ -732,7 +725,7 @@ auto cdcl_sat<Strategy>::clause::find_different_watch(const cdcl_sat &solver, un
   return size();
 }
 
-template <cdcl_sat_strategy Strategy>
+template<cdcl_sat_strategy Strategy>
 solve_status cdcl_sat<Strategy>::clause::propagate(propagation_context propagation, variable_handle triggering_var)
 {
   assert(m_watched_literals[0] < m_watched_literals[1] && m_watched_literals[1] < size());// NOLINT
@@ -758,8 +751,9 @@ solve_status cdcl_sat<Strategy>::clause::propagate(propagation_context propagati
   return unit_propagate(propagation, m_watched_literals.at(1 - watch_index));
 }
 
-template <cdcl_sat_strategy Strategy>
-solve_status cdcl_sat<Strategy>::clause::unit_propagate(propagation_context propagation, literal_index_t literal_num) const
+template<cdcl_sat_strategy Strategy>
+solve_status cdcl_sat<Strategy>::clause::unit_propagate(propagation_context propagation,
+  literal_index_t literal_num) const
 {
   const variable_handle var = get_variable(literal_num);
   const bool is_positive = is_positive_literal(literal_num);
@@ -780,8 +774,7 @@ solve_status cdcl_sat<Strategy>::clause::unit_propagate(propagation_context prop
   return solve_status::SAT;
 }
 
-template <cdcl_sat_strategy Strategy>
-void cdcl_sat<Strategy>::backtrack(level_t backtrack_level)
+template<cdcl_sat_strategy Strategy> void cdcl_sat<Strategy>::backtrack(level_t backtrack_level)
 {
   assert(get_level() > 0);
   log_info(*this, "Backtrack to level {}", backtrack_level);
