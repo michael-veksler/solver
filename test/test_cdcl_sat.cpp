@@ -12,33 +12,33 @@ using namespace solver;
 TEST_CASE("Initially set problem", "[cdcl_sat]")// NOLINT
 {
   cdcl_sat sat;
-  const cdcl_sat::variable_handle var = sat.add_var(binary_domain(true));
+  const cdcl_sat<binary_strategy>::variable_handle var = sat.add_var(binary_domain(true));
   REQUIRE(sat.solve() == solve_status::SAT);
-  REQUIRE(sat.get_value(var));
+  REQUIRE(sat.get_variable_value(var));
 }
 
 TEST_CASE("cdcl tiny problem false", "[cdcl_sat]")
 {
   cdcl_sat sat;
-  const cdcl_sat::variable_handle var = sat.add_var();
+  const cdcl_sat<binary_strategy>::variable_handle var = sat.add_var();
   sat.add_clause().add_literal(var, false);
   REQUIRE(sat.solve() == solve_status::SAT);
-  REQUIRE(!sat.get_value(var));
+  REQUIRE(!sat.get_variable_value(var));
 }
 
 TEST_CASE("cdcl tiny problem true", "[cdcl_sat]")
 {
   cdcl_sat sat;
-  const cdcl_sat::variable_handle var = sat.add_var();
+  const cdcl_sat<binary_strategy>::variable_handle var = sat.add_var();
   sat.add_clause().add_literal(var, true);
   REQUIRE(sat.solve() == solve_status::SAT);
-  REQUIRE(sat.get_value(var));
+  REQUIRE(sat.get_variable_value(var));
 }
 
 TEST_CASE("cdcl tiny problem unsat", "[cdcl_sat]")
 {
   cdcl_sat sat;
-  const cdcl_sat::variable_handle var = sat.add_var();
+  const cdcl_sat<binary_strategy>::variable_handle var = sat.add_var();
   sat.add_clause().add_literal(var, false);
   sat.add_clause().add_literal(var, true);
   REQUIRE(sat.solve() == solve_status::UNSAT);
@@ -48,23 +48,23 @@ TEST_CASE("cdcl implication problem", "[cdcl_sat]")
 {
   cdcl_sat sat;
   constexpr unsigned NUM_VARS = 3;
-  const std::vector<cdcl_sat::variable_handle> vars = create_variables(sat, NUM_VARS);
-  cdcl_sat::clause &implies0_1 = sat.add_clause();
+  const std::vector<cdcl_sat<binary_strategy>::variable_handle> vars = create_variables(sat, NUM_VARS);
+  cdcl_sat<binary_strategy>::clause &implies0_1 = sat.add_clause();
   implies0_1.add_literal(vars[0], false);
   implies0_1.add_literal(vars[1], true);
-  cdcl_sat::clause &implies1_2 = sat.add_clause();
+  cdcl_sat<binary_strategy>::clause &implies1_2 = sat.add_clause();
   implies1_2.add_literal(vars[1], false);
   implies1_2.add_literal(vars[2], true);
 
   sat.add_clause().add_literal(vars[0], true);
   REQUIRE(sat.solve() == solve_status::SAT);
-  REQUIRE((sat.get_value(vars[0]) && sat.get_value(vars[1]) && sat.get_value(vars[2])));
+  REQUIRE((sat.get_variable_value(vars[0]) && sat.get_variable_value(vars[1]) && sat.get_variable_value(vars[2])));
 }
 
 namespace {
 struct one_hot_int
 {
-  std::vector<cdcl_sat::variable_handle> vars;
+  std::vector<cdcl_sat<binary_strategy>::variable_handle> vars;
 };
 
 /**
@@ -97,8 +97,10 @@ struct all_different_problem
   one_hot_int make_one_hot(unsigned num_vals) { return { .vars = create_variables(solver, num_vals) }; }
   void constrain_at_least_one(const one_hot_int &integer_value)
   {
-    cdcl_sat::clause &at_least_one = solver.add_clause();
-    for (const cdcl_sat::variable_handle var : integer_value.vars) { at_least_one.add_literal(var, true); }
+    cdcl_sat<binary_strategy>::clause &at_least_one = solver.add_clause();
+    for (const cdcl_sat<binary_strategy>::variable_handle var : integer_value.vars) {
+      at_least_one.add_literal(var, true);
+    }
   }
   void constrain_at_most_one(const one_hot_int &integer_value)
   {
@@ -109,9 +111,9 @@ struct all_different_problem
     }
   }
 
-  void add_any_false(cdcl_sat::variable_handle left, cdcl_sat::variable_handle right)
+  void add_any_false(cdcl_sat<binary_strategy>::variable_handle left, cdcl_sat<binary_strategy>::variable_handle right)
   {
-    cdcl_sat::clause &any_false = solver.add_clause();
+    cdcl_sat<binary_strategy>::clause &any_false = solver.add_clause();
     any_false.add_literal(left, false);
     any_false.add_literal(right, false);
   }
@@ -127,7 +129,7 @@ struct all_different_problem
   }
 
   std::vector<one_hot_int> integer_values;
-  cdcl_sat solver;
+  cdcl_sat<binary_strategy> solver;
 };
 }// namespace
 
@@ -149,7 +151,7 @@ TEST_CASE("all_diff problem", "[cdcl_sat]")// NOLINT
   for (one_hot_int &integer_value : problem.integer_values) {
     bool found_bit_in_value = false;
     for (unsigned i = 0; i != integer_value.vars.size(); ++i) {
-      const bool bit_value = problem.solver.get_value(integer_value.vars[i]);
+      const bool bit_value = problem.solver.get_variable_value(integer_value.vars[i]);
       REQUIRE_FALSE((found_bit[i] && bit_value));
       found_bit[i] = bit_value || found_bit[i];
 
@@ -173,15 +175,15 @@ struct all_literal_combinations
 
   void add_all_literals(uint32_t literal_bits)
   {
-    cdcl_sat::clause &clause = solver.add_clause();
+    cdcl_sat<binary_strategy>::clause &clause = solver.add_clause();
     for (unsigned literal_index = 0; literal_index != NUM_VARS; ++literal_index) {
       const bool literal = ((literal_bits >> literal_index) & 1U) == 1;
       clause.add_literal(vars[literal_index], literal);
     }
   }
 
-  cdcl_sat solver;
-  std::vector<cdcl_sat::variable_handle> vars;
+  cdcl_sat<binary_strategy> solver;
+  std::vector<cdcl_sat<binary_strategy>::variable_handle> vars;
 };
 }// namespace
 

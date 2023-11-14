@@ -1,6 +1,7 @@
 #ifndef BINARY_DOMAIN_HPP
 #define BINARY_DOMAIN_HPP
 
+#include <initializer_list>
 #include <solver/solver_library_export.hpp>
 
 #include <cassert>
@@ -16,10 +17,15 @@ SOLVER_LIBRARY_EXPORT class binary_domain_iterator;
 SOLVER_LIBRARY_EXPORT class binary_domain
 {
 public:
+  using value_type = bool;
   constexpr binary_domain() = default;
   using iterator = binary_domain_iterator;
   explicit constexpr binary_domain(bool value) : m_zero(!value), m_one(value) {}
   constexpr binary_domain &operator=(bool value) { return *this = binary_domain(value); }
+  constexpr binary_domain(std::initializer_list<bool> values) : m_zero(0), m_one(0)
+  {
+    for (auto value : values) { insert(value); }
+  }
 
   [[nodiscard]] constexpr bool is_universal() const { return m_one && m_zero; }
   [[nodiscard]] constexpr bool empty() const { return !m_one && !m_zero; }
@@ -127,6 +133,12 @@ private:
 
 inline binary_domain::iterator binary_domain::begin() const { return iterator{ *this }; }
 inline binary_domain::iterator binary_domain::end() const { return iterator{ *this, true }; }
+
+template<std::integral ValueType> [[nodiscard]] inline constexpr ValueType get_value(const binary_domain &domain)
+{
+  return min(domain);
+}
+
 
 }// namespace solver
 

@@ -41,7 +41,7 @@ public:
 
   solve_status solve();
 
-  [[nodiscard]] bool get_value(variable_handle var) const { return solver::get_value(m_domains[var]); }
+  [[nodiscard]] bool get_variable_value(variable_handle var) const { return solver::get_value(m_domains[var]); }
 
 private:
   [[nodiscard]] std::pair<solve_status, uint64_t> solve_recursive(std::vector<binary_domain>::iterator depth,

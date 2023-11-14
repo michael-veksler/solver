@@ -1,9 +1,11 @@
+#include "solver/binary_domain.hpp"
 #include "solver/cdcl_sat.hpp"
 #include "solver/sat_types.hpp"
 #include "solver/trivial_sat.hpp"
 #include <CLI/CLI.hpp>
 #include <array>
 #include <fmt/core.h>
+#include <fmt/format.h>
 #include <fstream>
 #include <functional>
 #include <iostream>
@@ -121,13 +123,11 @@ int main(int argc, const char **argv)
 
     CLI11_PARSE(app, argc, argv);
     switch (requested_solver) {
-    case solver_kind::cdcl_sat:
-      {
-        solver_main<solver::cdcl_sat> solver_tester;
-        solver_tester.set_debug(is_debug);
-        solver_tester.solve(input);
-      }
-      break;
+    case solver_kind::cdcl_sat: {
+      solver_main<solver::cdcl_sat<>> solver_tester;
+      solver_tester.set_debug(is_debug);
+      solver_tester.solve(input);
+    } break;
     case solver_kind::trivial_sat:
       solver_main<solver::trivial_sat>().solve(input);
       break;
