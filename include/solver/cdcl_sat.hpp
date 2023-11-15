@@ -1,11 +1,9 @@
 #ifndef CDCL_SAT_HPP
 #define CDCL_SAT_HPP
 
-#include "binary_domain.hpp"
 #include "sat_types.hpp"
 #include "solver/sat_types.hpp"
 #include <boost/numeric/conversion/cast.hpp>
-#include <solver/binary_domain.hpp>
 #include <solver/solver_library_export.hpp>
 #include <solver/state_saver.hpp>
 
@@ -37,16 +35,17 @@ concept cdcl_sat_strategy = requires(T t) {
                               requires domain_concept<typename T::domain_type>;
                             };
 
-struct binary_strategy
+template<typename DomainType> struct domain_strategy
 {
-  using domain_type = solver::binary_domain;
+  using domain_type = DomainType;
 };
+
 
 /**
  * @brief A Conflict-Driven Clause-Learning SAT solver.
  *
  */
-template<cdcl_sat_strategy Strategy = binary_strategy> SOLVER_LIBRARY_EXPORT class cdcl_sat
+template<cdcl_sat_strategy Strategy> SOLVER_LIBRARY_EXPORT class cdcl_sat
 {
 private:
   static constexpr uint64_t default_max_backtracks = static_cast<uint64_t>(1) << 32U;
@@ -568,11 +567,11 @@ template<cdcl_sat_strategy Strategy>
 auto cdcl_sat<Strategy>::find_free_var(variable_handle search_start) const -> std::optional<variable_handle>
 {
   for (variable_handle var = search_start; var != m_domains.size(); ++var) {
-    if (m_domains[var].is_universal()) { return var; }
+    if (!m_domains[var].is_singleton()) { return var; }
   }
   if (search_start > 1) {
     for (variable_handle var = 1; var != search_start; ++var) {
-      if (m_domains[var].is_universal()) { return var; }
+      if (!m_domains[var].is_singleton()) { return var; }
     }
   }
   return std::nullopt;
