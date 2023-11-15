@@ -16,4 +16,5 @@ c v4 -> v5,  v5 -> v4
 
 c v5 -> not v3 ,  not v3 -> v5
 -5 -3 0
-3 5 0
+c Check that duplicate literals are removed
+3 5 3 0

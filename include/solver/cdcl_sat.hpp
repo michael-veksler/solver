@@ -220,6 +220,9 @@ public:
   };
 
   clause() = default;
+  clause(const clause&) = delete;
+  clause(clause&&) noexcept = default;
+  clause& operator=(const clause&) = delete;
   void reserve(literal_index_t num_literals) { m_literals.reserve(num_literals); }
   void add_literal(variable_handle var_num, bool is_positive)
   {
@@ -671,16 +674,13 @@ template<cdcl_sat_strategy Strategy> bool cdcl_sat<Strategy>::clause::remove_dup
 {
   std::set<int> encountered_literals;
   std::vector<int> replacement_literals;
-  for (auto iter = m_literals.begin(); iter != m_literals.end(); ++iter) {
-    if (encountered_literals.contains(*iter)) {
-      if (replacement_literals.empty()) {
-        replacement_literals.insert(replacement_literals.end(), m_literals.begin(), iter);
-      }
+  for (auto literal: m_literals) {
+    if (encountered_literals.contains(literal)) {
       continue;
     }
-    if (encountered_literals.contains(-*iter)) { return false; }
-    encountered_literals.insert(*iter);
-    if (!replacement_literals.empty()) { replacement_literals.push_back(*iter); }
+    if (encountered_literals.contains(-literal)) { return false; }
+    encountered_literals.insert(literal);
+    if (!replacement_literals.empty()) { replacement_literals.push_back(literal); }
   }
   if (!replacement_literals.empty()) { m_literals = std::move(replacement_literals); }
   return true;

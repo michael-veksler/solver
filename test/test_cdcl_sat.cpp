@@ -11,7 +11,8 @@
 using namespace solver;
 
 
-TEMPLATE_TEST_CASE("Initially set problem", "[cdcl_sat]", binary_domain, discrete_domain<uint8_t>)// NOLINT
+// NOLINTNEXTLINE(cert-err58-cpp)
+TEMPLATE_TEST_CASE("Initially set problem", "[cdcl_sat]", binary_domain, discrete_domain<uint8_t>)
 {
   using solver_type = cdcl_sat<domain_strategy<TestType>>;
   solver_type sat;
@@ -20,6 +21,7 @@ TEMPLATE_TEST_CASE("Initially set problem", "[cdcl_sat]", binary_domain, discret
   REQUIRE(sat.get_variable_value(var));
 }
 
+// NOLINTNEXTLINE(cert-err58-cpp)
 TEMPLATE_TEST_CASE("cdcl tiny problem false", "[cdcl_sat]", binary_domain, discrete_domain<uint8_t>)
 {
   using solver_type = cdcl_sat<domain_strategy<TestType>>;
@@ -30,6 +32,7 @@ TEMPLATE_TEST_CASE("cdcl tiny problem false", "[cdcl_sat]", binary_domain, discr
   REQUIRE(!sat.get_variable_value(var));
 }
 
+// NOLINTNEXTLINE(cert-err58-cpp)
 TEMPLATE_TEST_CASE("cdcl tiny problem true", "[cdcl_sat]", binary_domain, discrete_domain<uint8_t>)
 {
   using solver_type = cdcl_sat<domain_strategy<TestType>>;
@@ -40,6 +43,7 @@ TEMPLATE_TEST_CASE("cdcl tiny problem true", "[cdcl_sat]", binary_domain, discre
   REQUIRE(sat.get_variable_value(var));
 }
 
+// NOLINTNEXTLINE(cert-err58-cpp)
 TEMPLATE_TEST_CASE("cdcl tiny problem unsat", "[cdcl_sat]", binary_domain, discrete_domain<uint8_t>)
 {
   using solver_type = cdcl_sat<domain_strategy<TestType>>;
@@ -50,6 +54,7 @@ TEMPLATE_TEST_CASE("cdcl tiny problem unsat", "[cdcl_sat]", binary_domain, discr
   REQUIRE(sat.solve() == solve_status::UNSAT);
 }
 
+// NOLINTNEXTLINE(cert-err58-cpp)
 TEMPLATE_TEST_CASE("cdcl implication problem", "[cdcl_sat]", binary_domain, discrete_domain<uint8_t>)
 {
   using solver_type = cdcl_sat<domain_strategy<TestType>>;
@@ -140,10 +145,11 @@ template<typename DomainType> struct all_different_problem
 };
 }// namespace
 
+// NOLINTNEXTLINE(cert-err58-cpp)
 TEMPLATE_TEST_CASE("pigeon hole problem",
   "[cdcl_sat]",
   binary_domain,
-  discrete_domain<uint8_t>)// NOLINT(cert-err58-cpp)
+  discrete_domain<uint8_t>)
 {
   constexpr unsigned NUM_INTS = 6;
   all_different_problem<TestType> problem(NUM_INTS, NUM_INTS - 1);
@@ -151,10 +157,11 @@ TEMPLATE_TEST_CASE("pigeon hole problem",
   REQUIRE(problem.solver.solve() == solve_status::UNSAT);
 }
 
+// NOLINTNEXTLINE(cert-err58-cpp,readability-function-cognitive-complexity)
 TEMPLATE_TEST_CASE("all_diff problem",
   "[cdcl_sat]",
   binary_domain,
-  discrete_domain<uint8_t>)// NOLINT(cert-err58-cpp,readability-function-cognitive-complexity)
+  discrete_domain<uint8_t>)
 {
   constexpr unsigned NUM_INTS = 6;
   all_different_problem<TestType> problem(NUM_INTS, NUM_INTS);
