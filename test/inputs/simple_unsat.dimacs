@@ -1,6 +1,6 @@
 c a trivial unsat
 
-p cnf 5 2
+p cnf 5 9
 
 c a satisfiable sub-problem (either v1=1,v2=0 or v1=0,v2=1)
 1 2 0
@@ -17,4 +17,6 @@ c v4 -> v5,  v5 -> v4
 c v5 -> not v3 ,  not v3 -> v5
 -5 -3 0
 c Check that duplicate literals are removed
-3 5 3 0
+3 3 5 0
+
+5 3 -3 0
