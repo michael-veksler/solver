@@ -661,9 +661,9 @@ solve_status cdcl_sat<Strategy>::clause::literal_state(const cdcl_sat &solver, l
   const variable_handle var = get_variable(literal_num);
   const bool is_positive = is_positive_literal(literal_num);
   const domain_type &domain = solver.get_current_domain(var);
-  if (domain.is_singleton() && get_value(domain) == is_positive) {
+  if (domain.is_singleton() && get_value(domain) == (is_positive ? 1 : 0)) {
     return solve_status::SAT;
-  } else if (domain.is_singleton() && get_value(domain) == !is_positive) {
+  } else if (domain.is_singleton() && get_value(domain) == (is_positive ? 0 : 1)) {
     return solve_status::UNSAT;
   } else {
     return solve_status::UNKNOWN;
