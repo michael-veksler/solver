@@ -178,13 +178,17 @@ TEST_CASE("Domain assignment", "[int8_domain]")
 {
   REQUIRE((zero == uint8_domain(0) && one == uint8_domain(1)));
   uint8_domain domain;
-  domain = 0;// cppcheck-suppress redundantAssignment
+  // cppcheck-suppress redundantAssignment
+  domain = 0;
   REQUIRE(domain == zero);
-  domain = 1;// cppcheck-suppress redundantAssignment
+  // cppcheck-suppress redundantAssignment
+  domain = 1;
   REQUIRE(domain == one);
-  domain = 0;// cppcheck-suppress redundantAssignment
+  // cppcheck-suppress redundantAssignment
+  domain = 0;
   REQUIRE(domain == zero);
-  domain = uint8_domain::MAX_VALUE;// cppcheck-suppress redundantAssignment
+  // cppcheck-suppress redundantAssignment
+  domain = uint8_domain::MAX_VALUE;
   REQUIRE(domain == biggest);
   REQUIRE_THROWS_AS(domain = std::numeric_limits<uint8_t>::max(), std::invalid_argument);
   REQUIRE(domain == biggest);
