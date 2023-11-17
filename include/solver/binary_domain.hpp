@@ -7,6 +7,7 @@
 #include <cassert>
 #include <cinttypes>
 #include <iterator>
+#include <solver/domain_utils.hpp>
 #include <string>
 #include <vector>
 
@@ -17,6 +18,8 @@ SOLVER_LIBRARY_EXPORT class binary_domain_iterator;
 SOLVER_LIBRARY_EXPORT class binary_domain
 {
 public:
+  static constexpr bool MIN_VALUE = false;
+  static constexpr bool MAX_VALUE = true;
   using value_type = bool;
   constexpr binary_domain() = default;
   using iterator = binary_domain_iterator;
@@ -65,25 +68,11 @@ public:
     return dom.m_one == 1;
   }
   friend constexpr bool operator==(binary_domain left, binary_domain right) = default;
-  [[nodiscard]] std::string to_string() const
-  {
-    if (is_universal()) {
-      return "{0, 1}";
-    } else if (empty()) {
-      return "{}";
-    } else if (contains(false)) {
-      return "{0}";
-    } else {
-      return "{1}";
-    }
-  }
 
 private:
   uint8_t m_zero : 1 = 1;
   uint8_t m_one : 1 = 1;
 };
-
-[[nodiscard]] inline constexpr bool get_value(const binary_domain &domain) { return min(domain); }
 
 
 class binary_domain_iterator
@@ -139,6 +128,7 @@ template<std::integral ValueType> [[nodiscard]] inline constexpr ValueType get_v
   return min(domain);
 }
 
+static_assert(domain_concept<binary_domain>);
 
 }// namespace solver
 

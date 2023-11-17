@@ -32,7 +32,10 @@
 namespace solver {
 
 template<typename T>
-concept cdcl_sat_strategy = requires(T t) { typename T::domain_type; };
+concept cdcl_sat_strategy = requires(T t) {
+                              typename T::domain_type;
+                              requires domain_concept<typename T::domain_type>;
+                            };
 
 struct binary_strategy
 {
@@ -324,9 +327,9 @@ void cdcl_sat<Strategy>::set_domain(variable_handle var, domain_type domain, cla
 {
   if (get_debug()) {
     if (by_clause == implication::DECISION) {
-      log_info(*this, "L{}: Setting var{} := {} by DECISION", get_level(), var, domain.to_string());
+      log_info(*this, "L{}: Setting var{} := {} by DECISION", get_level(), var, to_string(domain));
     } else {
-      log_info(*this, "L{}: Setting var{} := {} by clause={}", get_level(), var, domain.to_string(), by_clause);
+      log_info(*this, "L{}: Setting var{} := {} by clause={}", get_level(), var, to_string(domain), by_clause);
     }
   }
   if (m_domains[var] != domain) {
@@ -554,7 +557,7 @@ template<cdcl_sat_strategy Strategy> solve_status cdcl_sat<Strategy>::solve()
 template<cdcl_sat_strategy Strategy> void cdcl_sat<Strategy>::validate_all_singletons() const
 {
   const auto not_singleton_iter = std::find_if(
-    std::next(m_domains.begin()), m_domains.end(), [](binary_domain domain) { return !domain.is_singleton(); });
+    std::next(m_domains.begin()), m_domains.end(), [](const domain_type &domain) { return !domain.is_singleton(); });
   if (not_singleton_iter != m_domains.end()) {
     throw std::runtime_error("Bug: var=" + std::to_string(std::distance(m_domains.begin(), not_singleton_iter))
                              + " should be singleton at a SAT solution");
@@ -585,7 +588,7 @@ template<cdcl_sat_strategy Strategy> bool cdcl_sat<Strategy>::make_choice()
     return false;
   }
   m_chosen_vars.push_back(*chosen);
-  set_domain(*chosen, binary_domain(false), implication::DECISION);
+  set_domain(*chosen, domain_type(false), implication::DECISION);
   assert(m_implications[*chosen].level == get_level());
   return true;
 }
@@ -757,18 +760,18 @@ solve_status cdcl_sat<Strategy>::clause::unit_propagate(propagation_context prop
 {
   const variable_handle var = get_variable(literal_num);
   const bool is_positive = is_positive_literal(literal_num);
-  const binary_domain domain = propagation.solver.get_current_domain(var);
+  const domain_type &domain = propagation.solver.get_current_domain(var);
   if (!domain.contains(is_positive)) {
     log_info(
       propagation.solver, "conflicting literal {}", is_positive ? static_cast<int>(var) : -static_cast<int>(var));
 
     return solve_status::UNSAT;
   }
-  if (domain == binary_domain(is_positive)) {
+  if (domain.is_singleton() && domain.contains(is_positive)) {
     log_info(propagation.solver, "Trivially SAT literal {}", literal_num);
     return solve_status::SAT;
   }
-  propagation.solver.set_domain(var, binary_domain(is_positive), propagation.clause);
+  propagation.solver.set_domain(var, domain_type(is_positive), propagation.clause);
 
   log_info(propagation.solver, "Propagating literal {} <-- {}", literal_num, is_positive);
   return solve_status::SAT;
@@ -783,7 +786,7 @@ template<cdcl_sat_strategy Strategy> void cdcl_sat<Strategy>::backtrack(level_t 
     if (m_implications[reset_var].level <= backtrack_level) { break; }
     log_info(*this, "Resetting var{}", reset_var);
     m_implied_vars.pop_back();
-    m_domains[reset_var] = binary_domain();
+    m_domains[reset_var] = domain_type();
     m_implications[reset_var] = implication();
   }
   m_chosen_vars.resize(backtrack_level);

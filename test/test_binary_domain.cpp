@@ -126,3 +126,11 @@ TEST_CASE("Domain assignment", "[binary_domain]")
   domain = false;
   REQUIRE(domain == zero);
 }
+
+TEST_CASE("to_string", "[binary_domain]")
+{
+  REQUIRE(to_string(empty) == "{}");
+  REQUIRE(to_string(zero) == "{0}");
+  REQUIRE(to_string(one) == "{1}");
+  REQUIRE(to_string(universal) == "{0, 1}");
+}
