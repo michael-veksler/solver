@@ -1,7 +1,7 @@
 #ifndef CDCL_SAT_HPP
 #define CDCL_SAT_HPP
 
-#include "sat_types.hpp"
+#include "solver/domain_utils.hpp"
 #include "solver/sat_types.hpp"
 #include <boost/numeric/conversion/cast.hpp>
 #include <solver/solver_library_export.hpp>

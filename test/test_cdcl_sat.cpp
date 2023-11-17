@@ -1,15 +1,15 @@
-#include "fmt/core.h"
 #include "solver/binary_domain.hpp"
 #include "solver/discrete_domain.hpp"
 #include <solver/cdcl_sat.hpp>
+#include <test_utils.hpp>
 
+#include "fmt/core.h"
 #include <algorithm>
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <functional>
 #include <sstream>
-#include "test_utils.hpp"
 
 using namespace solver;
 using namespace solver::testing;
@@ -224,11 +224,12 @@ TEMPLATE_TEST_CASE("max attempts", "[cdcl_sat]", binary_domain, discrete_domain<
   }
 }
 
+// NOLINTNEXTLINE(cert-err58-cpp)
 TEST_CASE("log trivial fail", "[cdcl_sat]")
 {
-  cdcl_sat<binary_strategy> solver;
+  cdcl_sat<domain_strategy<binary_domain>> solver;
   solver.set_debug(true);
-  const auto zero_var = solver.add_var(binary_domain{false});
+  const auto zero_var = solver.add_var(binary_domain{ false });
   solver.add_clause().add_literal(zero_var, true);
 
   REQUIRE_THAT(log_capture([&solver] { solver.solve(); }).str(), ContainsSubstring("Trivially UNSAT clause 0"));

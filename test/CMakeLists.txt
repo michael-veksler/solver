@@ -63,6 +63,11 @@ target_link_libraries(
           spdlog::spdlog
           Catch2::Catch2WithMain)
 
+target_include_directories(
+  tests
+  PRIVATE
+  ${PROJECT_SOURCE_DIR}
+)
 include_directories(
   SYSTEM
   ${BOOST_INCLUDE_DIRS}
