@@ -80,7 +80,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
   const auto num_vars = static_cast<uint16_t>(
     std::min<size_t>(random_data.get<uint16_t>().value_or(1), random_data.data_span.size() / VAR_RATIO) % (MAX_VARS) + 1);
   trivial_sat trivial_solver;
-  cdcl_sat cdcl_solver;
+  cdcl_sat<domain_strategy<binary_domain>> cdcl_solver;
   const auto trivial_variables = create_variables(trivial_solver, num_vars);
   const auto cdcl_variables = create_variables(cdcl_solver, num_vars);
   std::vector<std::vector<literal_type>> clauses;

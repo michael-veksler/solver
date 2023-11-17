@@ -1,11 +1,9 @@
 #ifndef CDCL_SAT_HPP
 #define CDCL_SAT_HPP
 
-#include "binary_domain.hpp"
-#include "sat_types.hpp"
+#include "solver/domain_utils.hpp"
 #include "solver/sat_types.hpp"
 #include <boost/numeric/conversion/cast.hpp>
-#include <solver/binary_domain.hpp>
 #include <solver/solver_library_export.hpp>
 #include <solver/state_saver.hpp>
 
@@ -37,16 +35,17 @@ concept cdcl_sat_strategy = requires(T t) {
                               requires domain_concept<typename T::domain_type>;
                             };
 
-struct binary_strategy
+template<typename DomainType> struct domain_strategy
 {
-  using domain_type = solver::binary_domain;
+  using domain_type = DomainType;
 };
+
 
 /**
  * @brief A Conflict-Driven Clause-Learning SAT solver.
  *
  */
-template<cdcl_sat_strategy Strategy = binary_strategy> SOLVER_LIBRARY_EXPORT class cdcl_sat
+template<cdcl_sat_strategy Strategy> SOLVER_LIBRARY_EXPORT class cdcl_sat
 {
 private:
   static constexpr uint64_t default_max_backtracks = static_cast<uint64_t>(1) << 32U;
@@ -221,6 +220,9 @@ public:
   };
 
   clause() = default;
+  clause(const clause &) = delete;
+  clause(clause &&) noexcept = default;
+  clause &operator=(const clause &) = delete;
   void reserve(literal_index_t num_literals) { m_literals.reserve(num_literals); }
   void add_literal(variable_handle var_num, bool is_positive)
   {
@@ -327,9 +329,9 @@ void cdcl_sat<Strategy>::set_domain(variable_handle var, domain_type domain, cla
 {
   if (get_debug()) {
     if (by_clause == implication::DECISION) {
-      log_info(*this, "L{}: Setting var{} := {} by DECISION", get_level(), var, to_string(domain));
+      spdlog::info( "L{}: Setting var{} := {} by DECISION", get_level(), var, to_string(domain));
     } else {
-      log_info(*this, "L{}: Setting var{} := {} by clause={}", get_level(), var, to_string(domain), by_clause);
+      spdlog::info( "L{}: Setting var{} := {} by clause={}", get_level(), var, to_string(domain), by_clause);
     }
   }
   if (m_domains[var] != domain) {
@@ -441,7 +443,7 @@ cdcl_sat<Strategy>::conflict_analysis_algo::conflict_analysis_algo(cdcl_sat &sol
 {
   const clause &conflicting_clause = solver.m_clauses.at(conflicting_clause_handle);
   if (solver.get_debug()) {
-    log_info(solver,
+    spdlog::info(
       "initiating conflict analysis with conflicting_clause {}={}",
       conflicting_clause_handle,
       conflicting_clause.to_string());
@@ -455,14 +457,14 @@ cdcl_sat<Strategy>::conflict_analysis_algo::conflict_analysis_algo(cdcl_sat &sol
     assert(was_inserted);// NOLINT
     implication_depth_to_var.emplace(implication_depth, var);
   }
-  if (solver.get_debug()) { log_info(solver, "cl={}", to_string()); }
+  if (solver.get_debug()) { spdlog::info( "cl={}", to_string()); }
 }
 
 template<cdcl_sat_strategy Strategy> void cdcl_sat<Strategy>::conflict_analysis_algo::resolve(variable_handle pivot_var)
 {
   const implication imp = solver.m_implications.at(pivot_var);
   const clause &prev_clause = solver.m_clauses.at(imp.implication_cause);
-  if (solver.get_debug()) { log_info(solver, "Resolving with {}={}", imp.implication_cause, prev_clause.to_string()); }
+  if (solver.get_debug()) { spdlog::info( "Resolving with {}={}", imp.implication_cause, prev_clause.to_string()); }
   for (typename clause::literal_index_t literal_num = 0; literal_num != prev_clause.size(); ++literal_num) {
     const bool is_positive = prev_clause.is_positive_literal(literal_num);
     const variable_handle var = prev_clause.get_variable(literal_num);
@@ -481,7 +483,7 @@ template<cdcl_sat_strategy Strategy> void cdcl_sat<Strategy>::conflict_analysis_
       }
     }
   }
-  if (solver.get_debug()) { log_info(solver, "cl={}", to_string()); }
+  if (solver.get_debug()) { spdlog::info( "cl={}", to_string()); }
 }
 
 template<cdcl_sat_strategy Strategy> std::string cdcl_sat<Strategy>::conflict_analysis_algo::to_string() const
@@ -508,7 +510,7 @@ auto cdcl_sat<Strategy>::analyze_conflict(clause_handle conflicting_clause)
     algo.resolve(algo.get_latest_implied_var());
     if (algo.empty() || algo.size() == 1 || algo.is_unit()) { break; }
   }
-  if (get_debug()) { log_info(*this, "conflict clause={}", algo.to_string()); }
+  if (get_debug()) { spdlog::info( "conflict clause={}", algo.to_string()); }
   if (algo.size() == 1) {
     return { { 0, algo.create_clause() } };
   } else if (algo.is_unit()) {
@@ -568,11 +570,11 @@ template<cdcl_sat_strategy Strategy>
 auto cdcl_sat<Strategy>::find_free_var(variable_handle search_start) const -> std::optional<variable_handle>
 {
   for (variable_handle var = search_start; var != m_domains.size(); ++var) {
-    if (m_domains[var].is_universal()) { return var; }
+    if (!m_domains[var].is_singleton()) { return var; }
   }
   if (search_start > 1) {
     for (variable_handle var = 1; var != search_start; ++var) {
-      if (m_domains[var].is_universal()) { return var; }
+      if (!m_domains[var].is_singleton()) { return var; }
     }
   }
   return std::nullopt;
@@ -607,7 +609,10 @@ template<cdcl_sat_strategy Strategy> bool cdcl_sat<Strategy>::initial_propagate(
   }
   for (clause_handle handle = 0; handle != m_clauses.size(); ++handle) {
     const solve_status status = m_clauses[handle].initial_propagate({ .solver = *this, .clause = handle });
-    if (status == solve_status::UNSAT) { return false; }
+    if (status == solve_status::UNSAT) {
+      log_info(*this, "Trivially UNSAT clause {} = {}", handle, m_clauses[handle].to_string());
+      return false;
+    }
   }
   const std::optional<clause_handle> conflicting_clause = propagate();
   return !conflicting_clause;
@@ -659,9 +664,9 @@ solve_status cdcl_sat<Strategy>::clause::literal_state(const cdcl_sat &solver, l
   const variable_handle var = get_variable(literal_num);
   const bool is_positive = is_positive_literal(literal_num);
   const domain_type &domain = solver.get_current_domain(var);
-  if (domain.is_singleton() && get_value(domain) == is_positive) {
+  if (domain.is_singleton() && get_value(domain) == (is_positive ? 1 : 0)) {
     return solve_status::SAT;
-  } else if (domain.is_singleton() && get_value(domain) == !is_positive) {
+  } else if (domain.is_singleton() && get_value(domain) == (is_positive ? 0 : 1)) {
     return solve_status::UNSAT;
   } else {
     return solve_status::UNKNOWN;
@@ -695,7 +700,9 @@ solve_status cdcl_sat<Strategy>::clause::initial_propagate(propagation_context p
   m_watched_literals[0] =
     linear_find_free_literal(propagation.solver, { 0U, static_cast<literal_index_t>(m_literals.size()) });
   if (m_watched_literals[0] == m_literals.size()) {
-    log_info(propagation.solver, "Trivially UNSAT clause {} = {}", propagation.clause, to_string());
+    if (propagation.solver.get_debug()) {
+      spdlog::info("Trivially UNSAT clause {} = {}", propagation.clause, to_string());
+    }
     return solve_status::UNSAT;
   }
   m_watched_literals[1] = linear_find_free_literal(
@@ -733,7 +740,7 @@ solve_status cdcl_sat<Strategy>::clause::propagate(propagation_context propagati
 {
   assert(m_watched_literals[0] < m_watched_literals[1] && m_watched_literals[1] < size());// NOLINT
   if (propagation.solver.get_debug()) {
-    log_info(propagation.solver, "propagating {} {}", propagation.clause, to_string());
+    spdlog::info("propagating {} {}", propagation.clause, to_string());
   }
 
   const unsigned watch_index = get_variable(m_watched_literals[0]) == triggering_var ? 0 : 1;

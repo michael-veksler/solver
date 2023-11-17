@@ -12,9 +12,8 @@
 #include <map>
 #include <optional>
 #include <ranges>
-#include <spdlog/spdlog.h>
-
 #include <solver/dimacs_parser.hpp>
+#include <spdlog/spdlog.h>
 
 // This file will be generated automatically when cur_you run the CMake
 // configuration step. It creates a namespace called `solver`. You can modify
@@ -124,7 +123,7 @@ int main(int argc, const char **argv)
     CLI11_PARSE(app, argc, argv);
     switch (requested_solver) {
     case solver_kind::cdcl_sat: {
-      solver_main<solver::cdcl_sat<>> solver_tester;
+      solver_main<solver::cdcl_sat<solver::domain_strategy<solver::binary_domain>>> solver_tester;
       solver_tester.set_debug(is_debug);
       solver_tester.solve(input);
     } break;

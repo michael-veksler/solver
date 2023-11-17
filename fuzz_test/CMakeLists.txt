@@ -13,7 +13,6 @@ target_link_libraries(
           solver::solver_library
           spdlog::spdlog
           fmt::fmt
-          -coverage
           -fsanitize=fuzzer)
 target_compile_options(fuzz_tester PRIVATE -fsanitize=fuzzer)
 

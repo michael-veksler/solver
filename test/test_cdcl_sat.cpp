@@ -1,58 +1,75 @@
-#include "fmt/core.h"
 #include "solver/binary_domain.hpp"
+#include "solver/discrete_domain.hpp"
 #include <solver/cdcl_sat.hpp>
+#include <test_utils.hpp>
 
+#include "fmt/core.h"
 #include <algorithm>
+#include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_string.hpp>
 #include <functional>
+#include <sstream>
 
 using namespace solver;
+using namespace solver::testing;
+using Catch::Matchers::ContainsSubstring;
 
 
-TEST_CASE("Initially set problem", "[cdcl_sat]")// NOLINT
+// NOLINTNEXTLINE(cert-err58-cpp)
+TEMPLATE_TEST_CASE("Initially set problem", "[cdcl_sat]", binary_domain, discrete_domain<uint8_t>)
 {
-  cdcl_sat sat;
-  const cdcl_sat<binary_strategy>::variable_handle var = sat.add_var(binary_domain(true));
+  using solver_type = cdcl_sat<domain_strategy<TestType>>;
+  solver_type sat;
+  const typename solver_type::variable_handle var = sat.add_var(TestType(true));
   REQUIRE(sat.solve() == solve_status::SAT);
   REQUIRE(sat.get_variable_value(var));
 }
 
-TEST_CASE("cdcl tiny problem false", "[cdcl_sat]")
+// NOLINTNEXTLINE(cert-err58-cpp)
+TEMPLATE_TEST_CASE("cdcl tiny problem false", "[cdcl_sat]", binary_domain, discrete_domain<uint8_t>)
 {
-  cdcl_sat sat;
-  const cdcl_sat<binary_strategy>::variable_handle var = sat.add_var();
+  using solver_type = cdcl_sat<domain_strategy<TestType>>;
+  solver_type sat;
+  const typename solver_type::variable_handle var = sat.add_var();
   sat.add_clause().add_literal(var, false);
   REQUIRE(sat.solve() == solve_status::SAT);
   REQUIRE(!sat.get_variable_value(var));
 }
 
-TEST_CASE("cdcl tiny problem true", "[cdcl_sat]")
+// NOLINTNEXTLINE(cert-err58-cpp)
+TEMPLATE_TEST_CASE("cdcl tiny problem true", "[cdcl_sat]", binary_domain, discrete_domain<uint8_t>)
 {
-  cdcl_sat sat;
-  const cdcl_sat<binary_strategy>::variable_handle var = sat.add_var();
+  using solver_type = cdcl_sat<domain_strategy<TestType>>;
+  solver_type sat;
+  const typename solver_type::variable_handle var = sat.add_var();
   sat.add_clause().add_literal(var, true);
   REQUIRE(sat.solve() == solve_status::SAT);
   REQUIRE(sat.get_variable_value(var));
 }
 
-TEST_CASE("cdcl tiny problem unsat", "[cdcl_sat]")
+// NOLINTNEXTLINE(cert-err58-cpp)
+TEMPLATE_TEST_CASE("cdcl tiny problem unsat", "[cdcl_sat]", binary_domain, discrete_domain<uint8_t>)
 {
-  cdcl_sat sat;
-  const cdcl_sat<binary_strategy>::variable_handle var = sat.add_var();
+  using solver_type = cdcl_sat<domain_strategy<TestType>>;
+  solver_type sat;
+  const typename solver_type::variable_handle var = sat.add_var();
   sat.add_clause().add_literal(var, false);
   sat.add_clause().add_literal(var, true);
   REQUIRE(sat.solve() == solve_status::UNSAT);
 }
 
-TEST_CASE("cdcl implication problem", "[cdcl_sat]")
+// NOLINTNEXTLINE(cert-err58-cpp)
+TEMPLATE_TEST_CASE("cdcl implication problem", "[cdcl_sat]", binary_domain, discrete_domain<uint8_t>)
 {
-  cdcl_sat sat;
+  using solver_type = cdcl_sat<domain_strategy<TestType>>;
+  solver_type sat;
   constexpr unsigned NUM_VARS = 3;
-  const std::vector<cdcl_sat<binary_strategy>::variable_handle> vars = create_variables(sat, NUM_VARS);
-  cdcl_sat<binary_strategy>::clause &implies0_1 = sat.add_clause();
+  const std::vector<typename solver_type::variable_handle> vars = create_variables(sat, NUM_VARS);
+  typename solver_type::clause &implies0_1 = sat.add_clause();
   implies0_1.add_literal(vars[0], false);
   implies0_1.add_literal(vars[1], true);
-  cdcl_sat<binary_strategy>::clause &implies1_2 = sat.add_clause();
+  typename solver_type::clause &implies1_2 = sat.add_clause();
   implies1_2.add_literal(vars[1], false);
   implies1_2.add_literal(vars[2], true);
 
@@ -62,9 +79,9 @@ TEST_CASE("cdcl implication problem", "[cdcl_sat]")
 }
 
 namespace {
-struct one_hot_int
+template<typename DomainType> struct one_hot_int
 {
-  std::vector<cdcl_sat<binary_strategy>::variable_handle> vars;
+  std::vector<typename cdcl_sat<domain_strategy<DomainType>>::variable_handle> vars;
 };
 
 /**
@@ -82,73 +99,75 @@ struct one_hot_int
  * Note: It is known that CDCL solvers, that use only clause-resolution rule in its conflict analysis,
  *       require exponential time to reach UNSAT if there are more integers than legal values.
  */
-struct all_different_problem
+template<typename DomainType> struct all_different_problem
 {
-  explicit all_different_problem(unsigned num_ints, unsigned num_vals)
+  using variable_handle = typename cdcl_sat<domain_strategy<DomainType>>::variable_handle;
+
+  all_different_problem(unsigned num_ints, unsigned num_vals)
   {
     integer_values.reserve(num_ints);
     std::generate_n(std::back_inserter(integer_values), num_ints, [num_vals, this] { return make_one_hot(num_vals); });
-    for (const one_hot_int &value : integer_values) {
+    for (const one_hot_int<DomainType> &value : integer_values) {
       constrain_at_least_one(value);
       constrain_at_most_one(value);
     }
     constrain_all_different();
   }
-  one_hot_int make_one_hot(unsigned num_vals) { return { .vars = create_variables(solver, num_vals) }; }
-  void constrain_at_least_one(const one_hot_int &integer_value)
+  one_hot_int<DomainType> make_one_hot(unsigned num_vals) { return { .vars = create_variables(solver, num_vals) }; }
+  void constrain_at_least_one(const one_hot_int<DomainType> &integer_value)
   {
-    cdcl_sat<binary_strategy>::clause &at_least_one = solver.add_clause();
-    for (const cdcl_sat<binary_strategy>::variable_handle var : integer_value.vars) {
-      at_least_one.add_literal(var, true);
-    }
+    typename cdcl_sat<domain_strategy<DomainType>>::clause &at_least_one = solver.add_clause();
+    for (const auto var : integer_value.vars) { at_least_one.add_literal(var, true); }
   }
-  void constrain_at_most_one(const one_hot_int &integer_value)
+  void constrain_at_most_one(const one_hot_int<DomainType> &integer_value)
   {
     for (unsigned i = 0; i != integer_value.vars.size(); ++i) {
       for (unsigned j = i + 1; j != integer_value.vars.size(); ++j) {
-        add_any_false(integer_value.vars[i], integer_value.vars[j]);
+        add_any_false({ integer_value.vars[i], integer_value.vars[j] });
       }
     }
   }
 
-  void add_any_false(cdcl_sat<binary_strategy>::variable_handle left, cdcl_sat<binary_strategy>::variable_handle right)
+  void add_any_false(std::pair<variable_handle, variable_handle> vars)
   {
-    cdcl_sat<binary_strategy>::clause &any_false = solver.add_clause();
-    any_false.add_literal(left, false);
-    any_false.add_literal(right, false);
+    typename cdcl_sat<domain_strategy<DomainType>>::clause &any_false = solver.add_clause();
+    any_false.add_literal(vars.first, false);
+    any_false.add_literal(vars.second, false);
   }
   void constrain_all_different()
   {
     for (unsigned bit = 0; bit != integer_values[0].vars.size(); ++bit) {
       for (unsigned i = 0; i != integer_values.size(); ++i) {
         for (unsigned j = i + 1; j != integer_values.size(); ++j) {
-          add_any_false(integer_values[i].vars[bit], integer_values[j].vars[bit]);
+          add_any_false({ integer_values[i].vars[bit], integer_values[j].vars[bit] });
         }
       }
     }
   }
 
-  std::vector<one_hot_int> integer_values;
-  cdcl_sat<binary_strategy> solver;
+  std::vector<one_hot_int<DomainType>> integer_values;
+  cdcl_sat<domain_strategy<DomainType>> solver;
 };
 }// namespace
 
-TEST_CASE("pigeon hole problem", "[cdcl_sat]")
+// NOLINTNEXTLINE(cert-err58-cpp)
+TEMPLATE_TEST_CASE("pigeon hole problem", "[cdcl_sat]", binary_domain, discrete_domain<uint8_t>)
 {
   constexpr unsigned NUM_INTS = 6;
-  all_different_problem problem(NUM_INTS, NUM_INTS - 1);
+  all_different_problem<TestType> problem(NUM_INTS, NUM_INTS - 1);
 
   REQUIRE(problem.solver.solve() == solve_status::UNSAT);
 }
 
-TEST_CASE("all_diff problem", "[cdcl_sat]")// NOLINT
+// NOLINTNEXTLINE(cert-err58-cpp,readability-function-cognitive-complexity)
+TEMPLATE_TEST_CASE("all_diff problem", "[cdcl_sat]", binary_domain, discrete_domain<uint8_t>)
 {
   constexpr unsigned NUM_INTS = 6;
-  all_different_problem problem(NUM_INTS, NUM_INTS);
+  all_different_problem<TestType> problem(NUM_INTS, NUM_INTS);
 
   REQUIRE(problem.solver.solve() == solve_status::SAT);
   std::vector<bool> found_bit(problem.integer_values[0].vars.size(), false);
-  for (one_hot_int &integer_value : problem.integer_values) {
+  for (one_hot_int<TestType> &integer_value : problem.integer_values) {
     bool found_bit_in_value = false;
     for (unsigned i = 0; i != integer_value.vars.size(); ++i) {
       const bool bit_value = problem.solver.get_variable_value(integer_value.vars[i]);
@@ -162,10 +181,13 @@ TEST_CASE("all_diff problem", "[cdcl_sat]")// NOLINT
   }
 }
 
+
 namespace {
-struct all_literal_combinations
+
+template<typename DomainType> struct all_literal_combinations
 {
   static constexpr unsigned NUM_VARS = 10;
+  using solver_type = cdcl_sat<domain_strategy<DomainType>>;
 
   explicit all_literal_combinations(unsigned max_attempts)
     : solver(max_attempts), vars(create_variables(solver, NUM_VARS))
@@ -175,38 +197,48 @@ struct all_literal_combinations
 
   void add_all_literals(uint32_t literal_bits)
   {
-    cdcl_sat<binary_strategy>::clause &clause = solver.add_clause();
+    typename solver_type::clause &clause = solver.add_clause();
     for (unsigned literal_index = 0; literal_index != NUM_VARS; ++literal_index) {
       const bool literal = ((literal_bits >> literal_index) & 1U) == 1;
       clause.add_literal(vars[literal_index], literal);
     }
   }
 
-  cdcl_sat<binary_strategy> solver;
-  std::vector<cdcl_sat<binary_strategy>::variable_handle> vars;
+  cdcl_sat<domain_strategy<DomainType>> solver;
+  std::vector<typename solver_type::variable_handle> vars;
 };
 }// namespace
 
-TEST_CASE("max attempts", "[cdcl_sat]")
+TEMPLATE_TEST_CASE("max attempts", "[cdcl_sat]", binary_domain, discrete_domain<uint8_t>)// NOLINT(cert-err58-cpp)
 {
-  const unsigned backtracks_required = (1U << (all_literal_combinations::NUM_VARS - 1)) - 1;
+  const unsigned backtracks_required = (1U << (all_literal_combinations<TestType>::NUM_VARS - 1)) - 1;
   SECTION("unsat")
   {
-    all_literal_combinations expected_unsat(backtracks_required);
+    all_literal_combinations<TestType> expected_unsat(backtracks_required);
     REQUIRE(expected_unsat.solver.solve() == solve_status::UNSAT);
   }
   SECTION("unknown")
   {
-    all_literal_combinations expected_unknown(backtracks_required - 1);
+    all_literal_combinations<TestType> expected_unknown(backtracks_required - 1);
     REQUIRE(expected_unknown.solver.solve() == solve_status::UNKNOWN);
   }
 }
 
-TEST_CASE("solve_status::to_string", "[cdcl_sat]")
+// NOLINTNEXTLINE(cert-err58-cpp)
+TEST_CASE("log trivial fail", "[cdcl_sat]")
+{
+  cdcl_sat<domain_strategy<binary_domain>> solver;
+  solver.set_debug(true);
+  const auto zero_var = solver.add_var(binary_domain{ false });
+  solver.add_clause().add_literal(zero_var, true);
+
+  REQUIRE_THAT(log_capture([&solver] { solver.solve(); }).str(), ContainsSubstring("Trivially UNSAT clause 0"));
+}
+
+TEST_CASE("solve_status::to_string", "[cdcl_sat]")// NOLINT(cert-err58-cpp)
 {
   REQUIRE(to_string(solve_status::SAT) == "SAT");
   REQUIRE(to_string(solve_status::UNSAT) == "UNSAT");
   REQUIRE(to_string(solve_status::UNKNOWN) == "UNKNOWN");
   REQUIRE(to_string(static_cast<solve_status>(5)) == "invalid(5)");
-
 }
