@@ -3,6 +3,7 @@
 
 #include <concepts>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <type_traits>
 
@@ -57,6 +58,7 @@ concept domain_class_concept = requires(T a, T b, typename T::value_type val)// 
   {
     T::MAX_VALUE
     } -> std::same_as<const typename T::value_type &>;
+  requires T::MIN_VALUE < T::MAX_VALUE;
   {
     a = b
     } -> std::same_as<T &>;
@@ -74,7 +76,15 @@ concept domain_class_concept = requires(T a, T b, typename T::value_type val)// 
 
 template<domain_class_concept Domain> inline std::ostream &operator<<(std::ostream &out, const Domain &domain)
 {
-  constexpr bool small_range = Domain::MAX_VALUE < 8 && Domain::MIN_VALUE >= -1;
+  // This is to avoid warnings of using bool in numeric context
+  constexpr auto to_numeric = [](auto value) {
+    if constexpr (std::is_same_v<decltype(value), bool>) {
+      return value ? 1 : 0;
+    } else {
+      return value;
+    }
+  };
+  constexpr bool small_range = 0 <= to_numeric(Domain::MIN_VALUE) && to_numeric(Domain::MAX_VALUE) < 8;
   if constexpr (!small_range) {
     if (domain.is_universal()) { return out << "{*}"; }
   }
@@ -82,7 +92,12 @@ template<domain_class_concept Domain> inline std::ostream &operator<<(std::ostre
   bool first = true;
   for (auto value : domain) {
     if (!first) { out << ", "; }
-    out << value;
+    if constexpr (sizeof(typename Domain::value_type) == 1) {
+      // This is to print any type as integer, even if it is a char
+      out << static_cast<int>(value);
+    } else {
+      out << value;
+    }
     first = false;
   }
   return out << "}";
@@ -90,19 +105,9 @@ template<domain_class_concept Domain> inline std::ostream &operator<<(std::ostre
 
 template<domain_class_concept Domain> std::string to_string(const Domain &domain)
 {
-  constexpr bool small_range = Domain::MAX_VALUE < 8 && Domain::MIN_VALUE >= -1;
-  if constexpr (!small_range) {
-    if (domain.is_universal()) { return "{*}"; }
-  }
-  std::string result = "{";
-  bool first = true;
-  for (auto value : domain) {
-    if (!first) { result += ", "; }
-    result += std::to_string(value);
-    first = false;
-  }
-  result += "}";
-  return result;
+  std::ostringstream out;
+  out << domain;
+  return out.str();
 }
 
 [[nodiscard]] inline constexpr auto get_value(const domain_class_concept auto &domain)
