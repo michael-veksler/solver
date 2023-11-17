@@ -32,7 +32,10 @@
 namespace solver {
 
 template<typename T>
-concept cdcl_sat_strategy = requires(T t) { typename T::domain_type; };
+concept cdcl_sat_strategy = requires(T t) {
+                              domain<T>;
+                              typename T::domain_type;
+                            };
 
 struct binary_strategy
 {
@@ -324,9 +327,9 @@ void cdcl_sat<Strategy>::set_domain(variable_handle var, domain_type domain, cla
 {
   if (get_debug()) {
     if (by_clause == implication::DECISION) {
-      log_info(*this, "L{}: Setting var{} := {} by DECISION", get_level(), var, domain.to_string());
+      log_info(*this, "L{}: Setting var{} := {} by DECISION", get_level(), var, to_string(domain));
     } else {
-      log_info(*this, "L{}: Setting var{} := {} by clause={}", get_level(), var, domain.to_string(), by_clause);
+      log_info(*this, "L{}: Setting var{} := {} by clause={}", get_level(), var, to_string(domain), by_clause);
     }
   }
   if (m_domains[var] != domain) {

@@ -3,6 +3,7 @@
 
 #include <boost/icl/discrete_interval.hpp>
 #include <boost/icl/interval_set.hpp>
+#include <solver/domain_utils.hpp>
 #include <solver/solver_library_export.hpp>
 
 #include <cassert>
@@ -10,7 +11,6 @@
 #include <concepts>
 #include <iterator>
 #include <limits>
-#include <sstream>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -89,12 +89,6 @@ public:
   {
     return left.is_singleton() && left.contains(right);
   }
-  [[nodiscard]] std::string to_string() const
-  {
-    std::ostringstream out;
-    out << *this;
-    return out.str();
-  }
 
 private:
   static void validate_inserted_value(value_type value)
@@ -111,12 +105,8 @@ private:
   boost::icl::interval_set<value_type> m_set{ get_universal_interval() };
 };
 
-template<std::integral ValueType>
-[[nodiscard]] inline constexpr ValueType get_value(const discrete_domain<ValueType> &domain)
-{
-  return min(domain);
-}
-
+static_assert(domain<discrete_domain<int32_t>>);
+static_assert(domain<discrete_domain<uint8_t>>);
 
 }// namespace solver
 

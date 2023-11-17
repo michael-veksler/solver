@@ -42,7 +42,7 @@ static void
   domain_shuffled_insert(discrete_domain<ValueType> &domain, const std::vector<ValueType> &values, unsigned seed)
 {
   auto shuffled_values = values;
-  std::mt19937 random(seed);
+  std::mt19937 random(static_cast<std::mt19937::result_type>(seed));
   std::shuffle(shuffled_values.begin(), shuffled_values.end(), random);
   for (const uint8_t val : shuffled_values) { domain.insert(val); }
 }
@@ -188,4 +188,16 @@ TEST_CASE("Domain assignment", "[int8_domain]")
   REQUIRE(domain == biggest);
   REQUIRE_THROWS_AS(domain = std::numeric_limits<uint8_t>::max(), std::invalid_argument);
   REQUIRE(domain == biggest);
+}
+
+// a test case for to_string
+TEST_CASE("to_string", "[int8_domain]")// NOLINT(readability-function-cognitive-complexity)
+{
+  REQUIRE(to_string(empty) == "{}");
+  REQUIRE(to_string(zero) == "{0}");
+  REQUIRE(to_string(one) == "{1}");
+  REQUIRE(to_string(biggest) == "{254}");
+  REQUIRE(to_string(universal) == "{*}");
+  REQUIRE(to_string(uint8_domain{ 0, 1 }) == "{0, 1}");
+  REQUIRE(to_string(uint8_domain{ 2, 20, 254 }) == "{2, 20, 254}");
 }
