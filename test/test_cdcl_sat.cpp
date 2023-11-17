@@ -146,10 +146,7 @@ template<typename DomainType> struct all_different_problem
 }// namespace
 
 // NOLINTNEXTLINE(cert-err58-cpp)
-TEMPLATE_TEST_CASE("pigeon hole problem",
-  "[cdcl_sat]",
-  binary_domain,
-  discrete_domain<uint8_t>)
+TEMPLATE_TEST_CASE("pigeon hole problem", "[cdcl_sat]", binary_domain, discrete_domain<uint8_t>)
 {
   constexpr unsigned NUM_INTS = 6;
   all_different_problem<TestType> problem(NUM_INTS, NUM_INTS - 1);
@@ -158,10 +155,7 @@ TEMPLATE_TEST_CASE("pigeon hole problem",
 }
 
 // NOLINTNEXTLINE(cert-err58-cpp,readability-function-cognitive-complexity)
-TEMPLATE_TEST_CASE("all_diff problem",
-  "[cdcl_sat]",
-  binary_domain,
-  discrete_domain<uint8_t>)
+TEMPLATE_TEST_CASE("all_diff problem", "[cdcl_sat]", binary_domain, discrete_domain<uint8_t>)
 {
   constexpr unsigned NUM_INTS = 6;
   all_different_problem<TestType> problem(NUM_INTS, NUM_INTS);

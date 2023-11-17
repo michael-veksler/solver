@@ -220,9 +220,9 @@ public:
   };
 
   clause() = default;
-  clause(const clause&) = delete;
-  clause(clause&&) noexcept = default;
-  clause& operator=(const clause&) = delete;
+  clause(const clause &) = delete;
+  clause(clause &&) noexcept = default;
+  clause &operator=(const clause &) = delete;
   void reserve(literal_index_t num_literals) { m_literals.reserve(num_literals); }
   void add_literal(variable_handle var_num, bool is_positive)
   {
