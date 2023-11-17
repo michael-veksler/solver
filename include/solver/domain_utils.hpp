@@ -79,13 +79,20 @@ std::string to_string(const Domain &domain)
   return min(domain);
 }
 
-template <typename T>
-concept domain = requires(T a, T b, typename T::value_type val, std::ostream & out)//NOLINT(readability-identifier-length)
+template<typename T>
+concept domain =
+  requires(T a, T b, typename T::value_type val, std::ostream &out)// NOLINT(readability-identifier-length)
 {
-  domain_class<T>;
-  { to_string(a) } -> std::same_as<std::string>;
-  { get_value(a) } -> std::same_as<typename T::value_type>;
-  { out << a } -> std::convertible_to<std::ostream &>;
+  requires domain_class<T>;
+  {
+    to_string(a)
+    } -> std::same_as<std::string>;
+  {
+    get_value(a)
+    } -> std::same_as<typename T::value_type>;
+  {
+    out << a
+    } -> std::convertible_to<std::ostream &>;
 };
 
 
