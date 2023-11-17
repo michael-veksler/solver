@@ -9,7 +9,7 @@
 namespace solver {
 
 template<typename T>
-concept domain_class = requires(T a, T b, typename T::value_type val)// NOLINT(readability-identifier-length)
+concept domain_class_concept = requires(T a, T b, typename T::value_type val)// NOLINT(readability-identifier-length)
 {
   typename T::value_type;
   {
@@ -72,7 +72,7 @@ concept domain_class = requires(T a, T b, typename T::value_type val)// NOLINT(r
 };
 
 
-template<domain_class Domain> inline std::ostream &operator<<(std::ostream &out, const Domain &domain)
+template<domain_class_concept Domain> inline std::ostream &operator<<(std::ostream &out, const Domain &domain)
 {
   constexpr bool small_range = Domain::MAX_VALUE < 8 && Domain::MIN_VALUE >= -1;
   if constexpr (!small_range) {
@@ -88,7 +88,7 @@ template<domain_class Domain> inline std::ostream &operator<<(std::ostream &out,
   return out << "}";
 }
 
-template<domain_class Domain> std::string to_string(const Domain &domain)
+template<domain_class_concept Domain> std::string to_string(const Domain &domain)
 {
   constexpr bool small_range = Domain::MAX_VALUE < 8 && Domain::MIN_VALUE >= -1;
   if constexpr (!small_range) {
@@ -105,17 +105,17 @@ template<domain_class Domain> std::string to_string(const Domain &domain)
   return result;
 }
 
-[[nodiscard]] inline constexpr auto get_value(const domain_class auto &domain)
+[[nodiscard]] inline constexpr auto get_value(const domain_class_concept auto &domain)
 {
   assert(min(domain) == max(domain));
   return min(domain);
 }
 
 template<typename T>
-concept domain =
+concept domain_concept =
   requires(T a, T b, typename T::value_type val, std::ostream &out)// NOLINT(readability-identifier-length)
 {
-  requires domain_class<T>;
+  requires domain_class_concept<T>;
   {
     to_string(a)
     } -> std::same_as<std::string>;

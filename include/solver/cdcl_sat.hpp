@@ -34,7 +34,7 @@ namespace solver {
 template<typename T>
 concept cdcl_sat_strategy = requires(T t) {
                               typename T::domain_type;
-                              requires domain<typename T::domain_type>;
+                              requires domain_concept<typename T::domain_type>;
                             };
 
 struct binary_strategy

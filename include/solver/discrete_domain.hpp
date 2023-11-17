@@ -105,8 +105,8 @@ private:
   boost::icl::interval_set<value_type> m_set{ get_universal_interval() };
 };
 
-static_assert(domain<discrete_domain<int32_t>>);
-static_assert(domain<discrete_domain<uint8_t>>);
+static_assert(domain_concept<discrete_domain<int32_t>>);
+static_assert(domain_concept<discrete_domain<uint8_t>>);
 
 }// namespace solver
 

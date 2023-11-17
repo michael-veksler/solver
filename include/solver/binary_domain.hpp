@@ -128,7 +128,7 @@ template<std::integral ValueType> [[nodiscard]] inline constexpr ValueType get_v
   return min(domain);
 }
 
-static_assert(domain<binary_domain>);
+static_assert(domain_concept<binary_domain>);
 
 }// namespace solver
 
