@@ -6,9 +6,14 @@
 #include <algorithm>
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_string.hpp>
 #include <functional>
+#include <sstream>
+#include "test_utils.hpp"
 
 using namespace solver;
+using namespace solver::testing;
+using Catch::Matchers::ContainsSubstring;
 
 
 // NOLINTNEXTLINE(cert-err58-cpp)
@@ -217,6 +222,16 @@ TEMPLATE_TEST_CASE("max attempts", "[cdcl_sat]", binary_domain, discrete_domain<
     all_literal_combinations<TestType> expected_unknown(backtracks_required - 1);
     REQUIRE(expected_unknown.solver.solve() == solve_status::UNKNOWN);
   }
+}
+
+TEST_CASE("log trivial fail", "[cdcl_sat]")
+{
+  cdcl_sat<binary_strategy> solver;
+  solver.set_debug(true);
+  const auto zero_var = solver.add_var(binary_domain{false});
+  solver.add_clause().add_literal(zero_var, true);
+
+  REQUIRE_THAT(log_capture([&solver] { solver.solve(); }).str(), ContainsSubstring("Trivially UNSAT clause 0"));
 }
 
 TEST_CASE("solve_status::to_string", "[cdcl_sat]")// NOLINT(cert-err58-cpp)

@@ -13,48 +13,16 @@
 #include "solver/dimacs_parser.hpp"
 #include "spdlog/sinks/ostream_sink.h"
 #include "spdlog/spdlog.h"
+#include "test_utils.hpp"
 
 using namespace solver;
 using Catch::Matchers::ContainsSubstring;
 using Catch::Matchers::RangeEquals;
+using namespace solver::testing;
 
 namespace {
-/**
- * @brief A RAII object to redirect the default spdlog logger to a stream.
- *
- * The redirection is undone upon destruction of the object.
- *
- */
-class log_redirect
-{
-public:
-  explicit log_redirect(std::ostream &out)
-  {
-    auto ostream_sink = std::make_shared<spdlog::sinks::ostream_sink_st>(out);
-    auto ostream_logger = std::make_shared<spdlog::logger>(logger_name, ostream_sink);
-    ostream_logger->set_pattern("<<<%v>>>");
-    ostream_logger->set_level(spdlog::level::debug);
-    spdlog::set_default_logger(ostream_logger);
-  }
-  log_redirect(const log_redirect &) = delete;
-  log_redirect(log_redirect &&) = delete;
-  log_redirect &operator=(const log_redirect &) = delete;
-  log_redirect &operator=(log_redirect &&) = delete;
 
-  ~log_redirect()
-  {
-    spdlog::set_default_logger(std::move(original_logger));
-    spdlog::drop(logger_name);
-  }
 
-private:
-  static constexpr const char *logger_name = "test_logger";
-
-  std::shared_ptr<spdlog::logger> original_logger = spdlog::default_logger();
-};
-}// namespace
-
-namespace {
 /**
  * @brief Helper class to hold one parsing case.
  *
