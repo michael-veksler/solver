@@ -190,6 +190,7 @@ TEST_CASE("Domain assignment", "[int8_domain]")
   // cppcheck-suppress redundantAssignment
   domain = uint8_domain::MAX_VALUE;
   REQUIRE(domain == biggest);
+  // cppckeck-suppress redundantAssignment
   REQUIRE_THROWS_AS(domain = std::numeric_limits<uint8_t>::max(), std::invalid_argument);
   REQUIRE(domain == biggest);
 }
