@@ -6,6 +6,8 @@
 #include <sstream>
 #include <string>
 #include <type_traits>
+#include <fmt/ostream.h>
+#include <fmt/core.h>
 
 namespace solver {
 
@@ -131,8 +133,11 @@ concept domain_concept =
     out << a
     } -> std::convertible_to<std::ostream &>;
 };
-
-
 }// namespace solver
+
+// ostream formatter for all domain_concept classes
+template<solver::domain_concept Domain> struct fmt::formatter<Domain> : fmt::ostream_formatter
+{
+};
 
 #endif
