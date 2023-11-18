@@ -42,7 +42,7 @@ static void
   domain_shuffled_insert(discrete_domain<ValueType> &domain, const std::vector<ValueType> &values, unsigned seed)
 {
   auto shuffled_values = values;
-  std::mt19937 random(static_cast<std::mt19937::result_type>(seed));
+  std::mt19937 random(seed);
   std::shuffle(shuffled_values.begin(), shuffled_values.end(), random);
   for (const uint8_t val : shuffled_values) { domain.insert(val); }
 }
