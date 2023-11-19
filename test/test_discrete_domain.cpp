@@ -206,3 +206,16 @@ TEST_CASE("to_string", "[int8_domain]")// NOLINT(readability-function-cognitive-
   REQUIRE(to_string(uint8_domain{ 0, 1 }) == "{0, 1}");
   REQUIRE(to_string(uint8_domain{ 2, 20, 254 }) == "{2, 20, 254}");
 }
+
+// Write test that formats int8_domain with fmt::format similar to the above to_string test
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
+TEST_CASE("fmt::format", "[int8_domain]")
+{
+  REQUIRE(fmt::format("{}", empty) == "{}");
+  REQUIRE(fmt::format("{}", zero) == "{0}");
+  REQUIRE(fmt::format("{}", one) == "{1}");
+  REQUIRE(fmt::format("{}", biggest) == "{254}");
+  REQUIRE(fmt::format("{}", universal) == "{*}");
+  REQUIRE(fmt::format("{}", uint8_domain{ 0, 254 }) == "{0, 254}");
+  REQUIRE(fmt::format("{}", uint8_domain{ 2, 1, 254 }) == "{1, 2, 254}");
+}

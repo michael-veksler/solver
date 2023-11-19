@@ -134,3 +134,11 @@ TEST_CASE("to_string", "[binary_domain]")
   REQUIRE(to_string(one) == "{1}");
   REQUIRE(to_string(universal) == "{0, 1}");
 }
+
+TEST_CASE("format", "[binary_domain]")
+{
+  REQUIRE(fmt::format("{}", empty) == "{}");
+  REQUIRE(fmt::format("{}",zero) == "{0}");
+  REQUIRE(fmt::format("{}",one) == "{1}");
+  REQUIRE(fmt::format("{}",universal) == "{0, 1}");
+}

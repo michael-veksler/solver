@@ -41,6 +41,9 @@ template<typename DomainType> struct domain_strategy
 };
 
 
+template<cdcl_sat_strategy Strategy> SOLVER_LIBRARY_EXPORT class cdcl_sat_clause;
+template<cdcl_sat_strategy Strategy> struct cdcl_sat_conflict_analysis_algo;
+
 /**
  * @brief A Conflict-Driven Clause-Learning SAT solver.
  *
@@ -53,7 +56,8 @@ private:
   using watch_container = std::vector<clause_handle>;
 
 public:
-  SOLVER_LIBRARY_EXPORT class clause;
+  using clause = cdcl_sat_clause<Strategy>;
+  friend clause;
   using variable_handle = uint32_t;
   using level_t = variable_handle;
   using domain_type = typename Strategy::domain_type;
@@ -144,8 +148,8 @@ private:
      */
     level_t level = 0;
   };
-  struct conflict_analysis_algo;
-  friend struct conflict_analysis_algo;
+  using conflict_analysis_algo = cdcl_sat_conflict_analysis_algo<Strategy>;
+  friend conflict_analysis_algo;
 
   /**
    * @brief Propagate all clauses to a fix-point.
@@ -208,28 +212,36 @@ private:
   std::vector<variable_handle> m_chosen_vars;
 };
 
-
-template<cdcl_sat_strategy Strategy> class cdcl_sat<Strategy>::clause
+template<cdcl_sat_strategy Strategy> class cdcl_sat_clause
 {
 public:
+
   using literal_index_t = uint32_t;
+  using cdcl_sat = solver::cdcl_sat<Strategy>;
+  using clause_handle = typename cdcl_sat::clause_handle;
+  using variable_handle = typename cdcl_sat::variable_handle;
+  using domain_type = typename cdcl_sat::domain_type;
   struct propagation_context
   {
     cdcl_sat &solver;
     clause_handle clause;
   };
 
-  clause() = default;
-  clause(const clause &) = delete;
-  clause(clause &&) noexcept = default;
-  clause &operator=(const clause &) = delete;
+  cdcl_sat_clause() = default;
+  cdcl_sat_clause(const cdcl_sat_clause &) = delete;
+  cdcl_sat_clause(cdcl_sat_clause &&) noexcept = default;
+  cdcl_sat_clause &operator=(const cdcl_sat_clause &) = delete;
+  cdcl_sat_clause &operator=(const cdcl_sat_clause &&) = delete;
+  ~cdcl_sat_clause() = default;
   void reserve(literal_index_t num_literals) { m_literals.reserve(num_literals); }
   void add_literal(variable_handle var_num, bool is_positive)
   {
     m_literals.push_back(is_positive ? static_cast<int>(var_num) : -static_cast<int>(var_num));
   }
+
   [[nodiscard]] solve_status initial_propagate(propagation_context propagation);
   [[nodiscard]] solve_status propagate(propagation_context propagation, variable_handle triggering_var);
+
   [[nodiscard]] variable_handle get_variable(literal_index_t literal_num) const
   {
     assert(literal_num < m_literals.size());// NOLINT
@@ -241,22 +253,22 @@ public:
     assert(literal_num < m_literals.size());// NOLINT
     return m_literals[literal_num] > 0;
   }
+
   [[nodiscard]] literal_index_t size() const
   {
     assert(m_literals.size() <= std::numeric_limits<literal_index_t>::max());// NOLINT
     return static_cast<literal_index_t>(m_literals.size());
   }
 
-  [[nodiscard]] std::string to_string() const
+  friend std::ostream & operator << (std::ostream &out, const cdcl_sat_clause<Strategy> &c)
   {
-    std::string ret = "{ ";
-    for (unsigned i = 0; i != m_literals.size(); ++i) {
-      if (i != 0) { ret += ", "; }
-      ret += std::to_string(m_literals[i]);
-      if (i == m_watched_literals[0] || i == m_watched_literals[1]) { ret += '*'; }
+    out << "{ ";
+    for (unsigned i = 0; i != c.m_literals.size(); ++i) {
+      if (i != 0) { out << ", "; }
+      out << c.m_literals[i];
+      if (i == c.m_watched_literals[0] || i == c.m_watched_literals[1]) { out << '*'; }
     }
-    ret += '}';
-    return ret;
+    return out << '}';
   }
 
 private:
@@ -286,6 +298,11 @@ private:
   std::array<literal_index_t, 2> m_watched_literals = { 0, 0 };
 };
 
+} // namespace solver
+
+template<solver::cdcl_sat_strategy Strategy> struct fmt::formatter<solver::cdcl_sat_clause<Strategy>> : fmt::ostream_formatter {};
+
+namespace solver {
 template<cdcl_sat_strategy Strategy>
 inline cdcl_sat<Strategy>::cdcl_sat(uint64_t max_backtracks) : m_max_backtracks(max_backtracks)
 {}
@@ -327,12 +344,10 @@ std::vector<typename cdcl_sat<Strategy>::variable_handle> create_variables(cdcl_
 template<cdcl_sat_strategy Strategy>
 void cdcl_sat<Strategy>::set_domain(variable_handle var, domain_type domain, clause_handle by_clause)
 {
-  if (get_debug()) {
-    if (by_clause == implication::DECISION) {
-      spdlog::info( "L{}: Setting var{} := {} by DECISION", get_level(), var, to_string(domain));
-    } else {
-      spdlog::info( "L{}: Setting var{} := {} by clause={}", get_level(), var, to_string(domain), by_clause);
-    }
+  if (by_clause == implication::DECISION) {
+    log_info(*this,  "L{}: Setting var{} := {} by DECISION", get_level(), var, domain);
+  } else {
+    log_info(*this,  "L{}: Setting var{} := {} by clause={}", get_level(), var, domain, by_clause);
   }
   if (m_domains[var] != domain) {
     m_domains[var] = std::move(domain);
@@ -351,15 +366,21 @@ void cdcl_sat<Strategy>::set_domain(variable_handle var, domain_type domain, cla
  *
  * It contains the currently generated clause, in the form of literals.
  */
-template<cdcl_sat_strategy Strategy> struct cdcl_sat<Strategy>::conflict_analysis_algo
+template<cdcl_sat_strategy Strategy> struct cdcl_sat_conflict_analysis_algo
 {
+  using clause_handle = typename cdcl_sat<Strategy>::clause_handle;
+  using variable_handle = typename cdcl_sat<Strategy>::variable_handle;
+  using cdcl_sat = solver::cdcl_sat<Strategy>;
+  using level_t = typename solver::cdcl_sat<Strategy>::level_t;
+  using clause = cdcl_sat_clause<Strategy>;
+  using implication = typename solver::cdcl_sat<Strategy>::implication;
   /**
    * @brief Construct a new conflict analysis algo object
    *
    * @param solver_in  A reference to the solver that had this conflict.
    * @param conflicting_clause_handle  The clause that detected the conflict.
    */
-  conflict_analysis_algo(cdcl_sat &solver_in, clause_handle conflicting_clause_handle);
+  cdcl_sat_conflict_analysis_algo(cdcl_sat &solver_in, clause_handle conflicting_clause_handle);
 
   /**
    * @brief Get the decision level of the latest nt-th literal in the generated clause.
@@ -436,18 +457,48 @@ template<cdcl_sat_strategy Strategy> struct cdcl_sat<Strategy>::conflict_analysi
   std::map<variable_handle, variable_handle> implication_depth_to_var;
 };
 
+template<cdcl_sat_strategy Strategy> std::string cdcl_sat_conflict_analysis_algo<Strategy>::to_string() const
+{
+  std::string ret = "{";
+  const char *sep = "";
+  for (auto [var, is_positive] : conflict_literals) {
+    ret += sep;
+    const level_t level = solver.m_implications[var].level;
+    ret += is_positive ? std::to_string(var) : '-' + std::to_string(var);
+    ret += '@' + std::to_string(level);
+    sep = ", ";
+  }
+  ret += '}';
+  return ret;
+}
+
+} // namespace solver
+
+
+template<solver::cdcl_sat_strategy Strategy> struct fmt::formatter<solver::cdcl_sat_conflict_analysis_algo<Strategy>> : fmt::formatter<std::string> {
+  template<typename FormatContext>
+  auto format(const solver::cdcl_sat_conflict_analysis_algo<Strategy> &algo, FormatContext &ctx)
+  {
+    return formatter<std::string>::format(algo.to_string(), ctx);
+  }
+};
+
+
+namespace solver {
+
+//   cdcl_sat_conflict_analysis_algo(cdcl_sat &solver_in, clause_handle conflicting_clause_handle);
+
 template<cdcl_sat_strategy Strategy>
-cdcl_sat<Strategy>::conflict_analysis_algo::conflict_analysis_algo(cdcl_sat &solver_in,
+cdcl_sat_conflict_analysis_algo<Strategy>::cdcl_sat_conflict_analysis_algo(cdcl_sat &solver_in,
   clause_handle conflicting_clause_handle)
   : solver(solver_in)
 {
   const clause &conflicting_clause = solver.m_clauses.at(conflicting_clause_handle);
-  if (solver.get_debug()) {
-    spdlog::info(
-      "initiating conflict analysis with conflicting_clause {}={}",
-      conflicting_clause_handle,
-      conflicting_clause.to_string());
-  }
+  log_info(
+    solver,
+    "initiating conflict analysis with conflicting_clause {}={}",
+    conflicting_clause_handle,
+    conflicting_clause);
   for (typename clause::literal_index_t literal_num = 0; literal_num != conflicting_clause.size(); ++literal_num) {
     const variable_handle var = conflicting_clause.get_variable(literal_num);
     const variable_handle implication_depth = solver.m_implications[var].implication_depth;
@@ -457,14 +508,14 @@ cdcl_sat<Strategy>::conflict_analysis_algo::conflict_analysis_algo(cdcl_sat &sol
     assert(was_inserted);// NOLINT
     implication_depth_to_var.emplace(implication_depth, var);
   }
-  if (solver.get_debug()) { spdlog::info( "cl={}", to_string()); }
+  log_info(solver, "cl={}", *this);
 }
 
-template<cdcl_sat_strategy Strategy> void cdcl_sat<Strategy>::conflict_analysis_algo::resolve(variable_handle pivot_var)
+template<cdcl_sat_strategy Strategy> void cdcl_sat_conflict_analysis_algo<Strategy>::resolve(variable_handle pivot_var)
 {
   const implication imp = solver.m_implications.at(pivot_var);
   const clause &prev_clause = solver.m_clauses.at(imp.implication_cause);
-  if (solver.get_debug()) { spdlog::info( "Resolving with {}={}", imp.implication_cause, prev_clause.to_string()); }
+  log_info(solver, "Resolving with {}={}", imp.implication_cause, prev_clause);
   for (typename clause::literal_index_t literal_num = 0; literal_num != prev_clause.size(); ++literal_num) {
     const bool is_positive = prev_clause.is_positive_literal(literal_num);
     const variable_handle var = prev_clause.get_variable(literal_num);
@@ -483,22 +534,7 @@ template<cdcl_sat_strategy Strategy> void cdcl_sat<Strategy>::conflict_analysis_
       }
     }
   }
-  if (solver.get_debug()) { spdlog::info( "cl={}", to_string()); }
-}
-
-template<cdcl_sat_strategy Strategy> std::string cdcl_sat<Strategy>::conflict_analysis_algo::to_string() const
-{
-  std::string ret = "{";
-  const char *sep = "";
-  for (auto [var, is_positive] : conflict_literals) {
-    ret += sep;
-    const level_t level = solver.m_implications[var].level;
-    ret += is_positive ? std::to_string(var) : '-' + std::to_string(var);
-    ret += '@' + std::to_string(level);
-    sep = ", ";
-  }
-  ret += '}';
-  return ret;
+  log_info(solver, "cl={}", *this);
 }
 
 template<cdcl_sat_strategy Strategy>
@@ -510,7 +546,7 @@ auto cdcl_sat<Strategy>::analyze_conflict(clause_handle conflicting_clause)
     algo.resolve(algo.get_latest_implied_var());
     if (algo.empty() || algo.size() == 1 || algo.is_unit()) { break; }
   }
-  if (get_debug()) { spdlog::info( "conflict clause={}", algo.to_string()); }
+  log_info(*this,  "conflict clause={}", algo);
   if (algo.size() == 1) {
     return { { 0, algo.create_clause() } };
   } else if (algo.is_unit()) {
@@ -595,7 +631,6 @@ template<cdcl_sat_strategy Strategy> bool cdcl_sat<Strategy>::make_choice()
   return true;
 }
 
-
 template<cdcl_sat_strategy Strategy> bool cdcl_sat<Strategy>::initial_propagate()
 {
   m_dirty_variables.clear();
@@ -610,7 +645,7 @@ template<cdcl_sat_strategy Strategy> bool cdcl_sat<Strategy>::initial_propagate(
   for (clause_handle handle = 0; handle != m_clauses.size(); ++handle) {
     const solve_status status = m_clauses[handle].initial_propagate({ .solver = *this, .clause = handle });
     if (status == solve_status::UNSAT) {
-      log_info(*this, "Trivially UNSAT clause {} = {}", handle, m_clauses[handle].to_string());
+      log_info(*this, "Trivially UNSAT clause {} = {}", handle, m_clauses[handle]);
       return false;
     }
   }
@@ -644,7 +679,7 @@ template<cdcl_sat_strategy Strategy> auto cdcl_sat<Strategy>::propagate() -> std
 }
 
 template<cdcl_sat_strategy Strategy>
-auto cdcl_sat<Strategy>::clause::linear_find_free_literal(const cdcl_sat<Strategy> &solver,
+auto cdcl_sat_clause<Strategy>::linear_find_free_literal(const cdcl_sat &solver,
   std::pair<literal_index_t, literal_index_t> literal_range) const -> literal_index_t
 {
   assert(literal_range.first <= literal_range.second);// NOLINT
@@ -659,7 +694,7 @@ auto cdcl_sat<Strategy>::clause::linear_find_free_literal(const cdcl_sat<Strateg
 }
 
 template<cdcl_sat_strategy Strategy>
-solve_status cdcl_sat<Strategy>::clause::literal_state(const cdcl_sat &solver, literal_index_t literal_num) const
+solve_status cdcl_sat_clause<Strategy>::literal_state(const cdcl_sat &solver, literal_index_t literal_num) const
 {
   const variable_handle var = get_variable(literal_num);
   const bool is_positive = is_positive_literal(literal_num);
@@ -673,7 +708,7 @@ solve_status cdcl_sat<Strategy>::clause::literal_state(const cdcl_sat &solver, l
   }
 }
 
-template<cdcl_sat_strategy Strategy> bool cdcl_sat<Strategy>::clause::remove_duplicate_variables()
+template<cdcl_sat_strategy Strategy> bool cdcl_sat_clause<Strategy>::remove_duplicate_variables()
 {
   std::set<int> encountered_literals;
   std::vector<int> replacement_literals;
@@ -693,16 +728,14 @@ template<cdcl_sat_strategy Strategy> bool cdcl_sat<Strategy>::clause::remove_dup
 }
 
 template<cdcl_sat_strategy Strategy>
-solve_status cdcl_sat<Strategy>::clause::initial_propagate(propagation_context propagation)
+solve_status cdcl_sat_clause<Strategy>::initial_propagate(propagation_context propagation)
 {
   if (!remove_duplicate_variables()) { return solve_status::SAT; }
   m_watched_literals = { 0, size() - 1 };
   m_watched_literals[0] =
     linear_find_free_literal(propagation.solver, { 0U, static_cast<literal_index_t>(m_literals.size()) });
   if (m_watched_literals[0] == m_literals.size()) {
-    if (propagation.solver.get_debug()) {
-      spdlog::info("Trivially UNSAT clause {} = {}", propagation.clause, to_string());
-    }
+    log_info(propagation.solver, "Trivially UNSAT clause {} = {}", propagation.clause, *this);
     return solve_status::UNSAT;
   }
   m_watched_literals[1] = linear_find_free_literal(
@@ -716,7 +749,7 @@ solve_status cdcl_sat<Strategy>::clause::initial_propagate(propagation_context p
 }
 
 template<cdcl_sat_strategy Strategy>
-auto cdcl_sat<Strategy>::clause::find_different_watch(const cdcl_sat &solver, unsigned watch_index) const
+auto cdcl_sat_clause<Strategy>::find_different_watch(const cdcl_sat &solver, unsigned watch_index) const
   -> literal_index_t
 {
   const literal_index_t watched_literal = m_watched_literals.at(watch_index);
@@ -736,12 +769,10 @@ auto cdcl_sat<Strategy>::clause::find_different_watch(const cdcl_sat &solver, un
 }
 
 template<cdcl_sat_strategy Strategy>
-solve_status cdcl_sat<Strategy>::clause::propagate(propagation_context propagation, variable_handle triggering_var)
+solve_status cdcl_sat_clause<Strategy>::propagate(propagation_context propagation, variable_handle triggering_var)
 {
   assert(m_watched_literals[0] < m_watched_literals[1] && m_watched_literals[1] < size());// NOLINT
-  if (propagation.solver.get_debug()) {
-    spdlog::info("propagating {} {}", propagation.clause, to_string());
-  }
+  log_info(propagation.solver, "propagating {} {}", propagation.clause, *this);
 
   const unsigned watch_index = get_variable(m_watched_literals[0]) == triggering_var ? 0 : 1;
 
@@ -762,7 +793,7 @@ solve_status cdcl_sat<Strategy>::clause::propagate(propagation_context propagati
 }
 
 template<cdcl_sat_strategy Strategy>
-solve_status cdcl_sat<Strategy>::clause::unit_propagate(propagation_context propagation,
+solve_status cdcl_sat_clause<Strategy>::unit_propagate(propagation_context propagation,
   literal_index_t literal_num) const
 {
   const variable_handle var = get_variable(literal_num);
