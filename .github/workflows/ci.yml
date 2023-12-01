@@ -96,11 +96,12 @@ jobs:
             packaging_maintainer_mode: On
             enable_ipo: On
 
-          - os: windows-2022
-            compiler: msvc
-            generator: "Visual Studio 17 2022"
-            build_type: Debug
-            packaging_maintainer_mode: Off
+          # The generated executables fail with the latest update to VSCMD_VER=17.8.1, used to work with VSCMD_VER: 17.7.6
+          # - os: windows-2022
+          #   compiler: msvc
+          #   generator: "Visual Studio 17 2022"
+          #   build_type: Debug
+          #   packaging_maintainer_mode: Off
 
           - os: windows-2022
             compiler: msvc
