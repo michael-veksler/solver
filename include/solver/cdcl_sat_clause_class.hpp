@@ -9,8 +9,7 @@ namespace solver {
 template<cdcl_sat_strategy Strategy> class cdcl_sat_clause
 {
 public:
-
-  using literal_index_t = uint32_t;
+  using literal_index_t = typename Strategy::literal_index_t;
   using cdcl_sat = solver::cdcl_sat<Strategy>;
   using clause_handle = typename cdcl_sat::clause_handle;
   using variable_handle = typename cdcl_sat::variable_handle;
@@ -54,13 +53,13 @@ public:
     return static_cast<literal_index_t>(m_literals.size());
   }
 
-  friend std::ostream & operator << (std::ostream &out, const cdcl_sat_clause<Strategy> &c)
+  friend std::ostream &operator<<(std::ostream &out, const cdcl_sat_clause<Strategy> &clause)
   {
     out << "{ ";
-    for (unsigned i = 0; i != c.m_literals.size(); ++i) {
+    for (unsigned i = 0; i != clause.m_literals.size(); ++i) {
       if (i != 0) { out << ", "; }
-      out << c.m_literals[i];
-      if (i == c.m_watched_literals[0] || i == c.m_watched_literals[1]) { out << '*'; }
+      out << clause.m_literals[i];
+      if (i == clause.m_watched_literals[0] || i == clause.m_watched_literals[1]) { out << '*'; }
     }
     return out << '}';
   }

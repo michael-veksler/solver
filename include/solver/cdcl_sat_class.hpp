@@ -15,14 +15,17 @@
 namespace solver {
 
 template<typename T>
-concept cdcl_sat_strategy = requires(T t) {
+concept cdcl_sat_strategy = requires(T value) {
                               typename T::domain_type;
                               requires domain_concept<typename T::domain_type>;
+                              typename T::literal_index_t;
+                              requires std::is_integral_v<typename T::literal_index_t>;
                             };
 
 template<typename DomainType> struct domain_strategy
 {
   using domain_type = DomainType;
+  using literal_index_t = uint32_t;
 };
 
 
@@ -37,11 +40,12 @@ template<cdcl_sat_strategy Strategy> SOLVER_LIBRARY_EXPORT class cdcl_sat
 {
 private:
   static constexpr uint64_t default_max_backtracks = static_cast<uint64_t>(1) << 32U;
-  using clause_handle = uint32_t;
-  using watch_container = std::vector<clause_handle>;
 
 public:
   using clause = cdcl_sat_clause<Strategy>;
+  using clause_handle = uint32_t;
+  using literal_index_t = typename Strategy::literal_index_t;
+  using watch_container = std::vector<clause_handle>;
   friend clause;
   using variable_handle = uint32_t;
   using level_t = variable_handle;
@@ -102,6 +106,95 @@ public:
     return static_cast<level_t>(m_chosen_vars.size());
   }
 
+  /**
+   * @brief Get the decision level at which the variable's domain was modified.
+   *
+   * @param var The variable to query.
+   * @return The decision level of the variable.
+   */
+  [[nodiscard]] level_t get_var_decision_level(variable_handle var) const { return get_var_implication(var).level; }
+
+  /**
+   * @brief Get the depth of the implication graph.
+   *
+   * The depth is more or less the number of the active domain modifications
+   * that precede this variable's domain modification.
+   *
+   * @param var The variable to query.
+   * @return The decision level of the variable.
+   */
+  [[nodiscard]] variable_handle get_var_implication_depth(variable_handle var) const
+  {
+    return get_var_implication(var).implication_depth;
+  }
+
+  /**
+   * @brief Get the clause that caused the implication of the variable.
+   *
+   * @param var The variable to query.
+   * @return The clause that caused the implication of the variable.
+   */
+  [[nodiscard]] clause_handle get_var_implication_clause(variable_handle var) const
+  {
+    return get_var_implication(var).implication_cause;
+  }
+
+  /**
+   * @brief Get the number of clauses in the solver.
+   *
+   * @return The number of clauses in the solver.
+   */
+  [[nodiscard]] size_t num_clauses() const { return m_clauses.size(); }
+
+  /**
+   * @brief Get the number of literals in a clause.
+   *
+   * @param handle The clause to query.
+   * @return The number of literals in the clause.
+   */
+  [[nodiscard]] literal_index_t get_clause_size(clause_handle handle) const
+  {
+    return m_clauses[handle].size();
+  }
+
+  /**
+   * @brief Get the variable of the literal at the given index in the clause.
+   *
+   * @param handle The clause to query.
+   * @param index The index of the literal to query.
+   * @return The literal at the given index in the clause.
+   */
+  [[nodiscard]] variable_handle get_clause_variable(clause_handle handle, literal_index_t index) const
+  {
+    return m_clauses[handle].get_variable(index);
+  }
+
+  /**
+   * @brief Get the value of the literal at the given index in the clause.
+   * @param handle The clause to query.
+   * @param index The index of the literal to query.
+   * @return The value of the literal at the given index in the clause.
+   */
+  [[nodiscard]] bool is_clause_positive_literal(clause_handle handle, literal_index_t index) const
+  {
+    return m_clauses[handle].is_positive_literal(index);
+  }
+
+  /**
+   * @brief Add and populate a clause with the current list of literals.
+   *
+   * @return clause_handle The handle of the newly created clause.
+   */
+  [[nodiscard]] clause_handle create_clause(const cdcl_sat_conflict_analysis_algo<Strategy> &);
+
+  /**
+   * @brief Logs the specified clause with the given prefix text.
+   *
+   * @param handle The handle to the clause to be logged.
+   * @param prefix_text The prefix text to be included in the log.
+   */
+  void log_clause(clause_handle handle, const std::string_view &prefix_text) const;
+
 private:
   /**
    * @brief Holds historic information about a single implication.
@@ -133,8 +226,10 @@ private:
      */
     level_t level = 0;
   };
+
+  [[nodiscard]] implication get_var_implication(variable_handle var) const { return m_implications.at(var); }
+
   using conflict_analysis_algo = cdcl_sat_conflict_analysis_algo<Strategy>;
-  friend conflict_analysis_algo;
 
   /**
    * @brief Propagate all clauses to a fix-point.
