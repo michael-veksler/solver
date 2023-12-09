@@ -53,7 +53,7 @@ public:
     return static_cast<literal_index_t>(m_literals.size());
   }
 
-  friend std::ostream & operator << (std::ostream &out, const cdcl_sat_clause<Strategy> &clause)
+  friend std::ostream &operator<<(std::ostream &out, const cdcl_sat_clause<Strategy> &clause)
   {
     out << "{ ";
     for (unsigned i = 0; i != clause.m_literals.size(); ++i) {

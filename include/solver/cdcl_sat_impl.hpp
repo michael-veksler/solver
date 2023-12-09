@@ -80,7 +80,7 @@ auto cdcl_sat<Strategy>::analyze_conflict(clause_handle conflicting_clause)
     algo.resolve(algo.get_latest_implied_var());
     if (algo.empty() || algo.size() == 1 || algo.is_unit()) { break; }
   }
-  log_info(*this,  "conflict clause={}", algo);
+  log_info(*this, "conflict clause={}", algo);
   if (algo.size() == 1) {
     return { { 0, create_clause(algo) } };
   } else if (algo.is_unit()) {
@@ -229,12 +229,13 @@ template<cdcl_sat_strategy Strategy> void cdcl_sat<Strategy>::backtrack(level_t 
 }
 
 template<cdcl_sat_strategy Strategy>
-auto cdcl_sat<Strategy>::create_clause(const cdcl_sat_conflict_analysis_algo<Strategy> & conflict_analysis) -> clause_handle
+auto cdcl_sat<Strategy>::create_clause(const cdcl_sat_conflict_analysis_algo<Strategy> &conflict_analysis)
+  -> clause_handle
 {
-    const auto ret = boost::numeric_cast<clause_handle>(m_clauses.size());
-    clause &added = add_clause();
-    for (auto [var_num, is_positive] : conflict_analysis.conflict_literals) { added.add_literal(var_num, is_positive); }
-    return ret;
+  const auto ret = boost::numeric_cast<clause_handle>(m_clauses.size());
+  clause &added = add_clause();
+  for (auto [var_num, is_positive] : conflict_analysis.conflict_literals) { added.add_literal(var_num, is_positive); }
+  return ret;
 }
 
 // implement log_clause

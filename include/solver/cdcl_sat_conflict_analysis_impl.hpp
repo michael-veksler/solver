@@ -1,4 +1,4 @@
-  #ifndef CDCL_SAT_CONFLICT_ANALYSIS_IMPL_HPP
+#ifndef CDCL_SAT_CONFLICT_ANALYSIS_IMPL_HPP
 #define CDCL_SAT_CONFLICT_ANALYSIS_IMPL_HPP
 
 #include "solver/cdcl_sat_conflict_analysis.hpp"
@@ -45,16 +45,12 @@ template<cdcl_sat_strategy Strategy> std::string cdcl_sat_conflict_analysis_algo
 }
 
 template<cdcl_sat_strategy Strategy>
-cdcl_sat_conflict_analysis_algo<Strategy>::cdcl_sat_conflict_analysis_algo(
-  const cdcl_sat & solver_in,
+cdcl_sat_conflict_analysis_algo<Strategy>::cdcl_sat_conflict_analysis_algo(const cdcl_sat &solver_in,
   clause_handle conflicting_clause)
   : solver(solver_in)
 {
-  solver.log_clause(conflicting_clause,
-        "initiating conflict analysis with conflicting_clause");
-  for (literal_index_t literal_num = 0;
-       literal_num != solver.get_clause_size(conflicting_clause);
-       ++literal_num) {
+  solver.log_clause(conflicting_clause, "initiating conflict analysis with conflicting_clause");
+  for (literal_index_t literal_num = 0; literal_num != solver.get_clause_size(conflicting_clause); ++literal_num) {
     const variable_handle var = solver.get_clause_variable(conflicting_clause, literal_num);
     const variable_handle implication_depth = solver.get_var_implication_depth(var);
     if (implication_depth == 0) { continue; }

@@ -29,7 +29,6 @@ template<typename DomainType> struct domain_strategy
 };
 
 
-
 template<cdcl_sat_strategy Strategy> SOLVER_LIBRARY_EXPORT class cdcl_sat_clause;
 template<cdcl_sat_strategy Strategy> struct cdcl_sat_conflict_analysis_algo;
 
@@ -113,10 +112,7 @@ public:
    * @param var The variable to query.
    * @return The decision level of the variable.
    */
-  [[nodiscard]] level_t get_var_decision_level(variable_handle var) const
-  {
-    return get_var_implication(var).level;
-  }
+  [[nodiscard]] level_t get_var_decision_level(variable_handle var) const { return get_var_implication(var).level; }
 
   /**
    * @brief Get the depth of the implication graph.
@@ -156,8 +152,9 @@ public:
    * @param clause_handle The clause to query.
    * @return The number of literals in the clause.
    */
-  [[nodiscard]] literal_index_t get_clause_size(clause_handle clause_handle) const {
-      return m_clauses[clause_handle].size();
+  [[nodiscard]] literal_index_t get_clause_size(clause_handle clause_handle) const
+  {
+    return m_clauses[clause_handle].size();
   }
 
   /**
@@ -167,17 +164,19 @@ public:
    * @param index The index of the literal to query.
    * @return The literal at the given index in the clause.
    */
-  [[nodiscard]] variable_handle get_clause_variable(clause_handle clause_handle, literal_index_t index) const {
-      return m_clauses[clause_handle].get_variable(index);
+  [[nodiscard]] variable_handle get_clause_variable(clause_handle clause_handle, literal_index_t index) const
+  {
+    return m_clauses[clause_handle].get_variable(index);
   }
 
   /** @brief Get the value of the literal at the given index in the clause.
-    * @param clause_handle The clause to query.
-    * @param index The index of the literal to query.
-    * @return The value of the literal at the given index in the clause.
-    */
-  [[nodiscard]] bool is_clause_positive_literal(clause_handle clause_handle, literal_index_t index) const {
-      return m_clauses[clause_handle].is_positive_literal(index);
+   * @param clause_handle The clause to query.
+   * @param index The index of the literal to query.
+   * @return The value of the literal at the given index in the clause.
+   */
+  [[nodiscard]] bool is_clause_positive_literal(clause_handle clause_handle, literal_index_t index) const
+  {
+    return m_clauses[clause_handle].is_positive_literal(index);
   }
 
   /**
@@ -196,7 +195,6 @@ public:
   void log_clause(clause_handle clause_handle, const std::string_view &prefix_text) const;
 
 private:
-
   /**
    * @brief Holds historic information about a single implication.
    *
@@ -228,10 +226,7 @@ private:
     level_t level = 0;
   };
 
-  [[nodiscard]] implication get_var_implication(variable_handle var) const
-  {
-      return m_implications.at(var);
-  }
+  [[nodiscard]] implication get_var_implication(variable_handle var) const { return m_implications.at(var); }
 
   using conflict_analysis_algo = cdcl_sat_conflict_analysis_algo<Strategy>;
 
