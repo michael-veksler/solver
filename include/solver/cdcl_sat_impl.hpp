@@ -82,9 +82,9 @@ auto cdcl_sat<Strategy>::analyze_conflict(clause_handle conflicting_clause)
   }
   log_info(*this,  "conflict clause={}", algo);
   if (algo.size() == 1) {
-    return { { 0, algo.create_clause() } };
+    return { { 0, create_clause(algo) } };
   } else if (algo.is_unit()) {
-    return { { algo.get_level(1), algo.create_clause() } };
+    return { { algo.get_level(1), create_clause(algo) } };
   }
   return std::nullopt;
 }
@@ -226,6 +226,26 @@ template<cdcl_sat_strategy Strategy> void cdcl_sat<Strategy>::backtrack(level_t 
   }
   m_chosen_vars.resize(backtrack_level);
   m_dirty_variables.clear();
+}
+
+template<cdcl_sat_strategy Strategy>
+auto cdcl_sat<Strategy>::create_clause(const cdcl_sat_conflict_analysis_algo<Strategy> & conflict_analysis) -> clause_handle
+{
+    const auto ret = boost::numeric_cast<clause_handle>(m_clauses.size());
+    clause &added = add_clause();
+    for (auto [var_num, is_positive] : conflict_analysis.conflict_literals) { added.add_literal(var_num, is_positive); }
+    return ret;
+}
+
+// implement log_clause
+template<cdcl_sat_strategy Strategy>
+void cdcl_sat<Strategy>::log_clause(clause_handle clause_handle, const std::string_view &prefix_text) const
+{
+  if (clause_handle >= m_clauses.size()) {
+    log_info(*this, "{} {}=invalid", prefix_text, clause_handle);
+  } else {
+    log_info(*this, "{} {}={}", prefix_text, clause_handle, m_clauses.at(clause_handle));
+  }
 }
 
 }// namespace solver
