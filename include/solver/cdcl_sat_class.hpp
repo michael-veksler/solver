@@ -149,34 +149,35 @@ public:
   /**
    * @brief Get the number of literals in a clause.
    *
-   * @param clause_handle The clause to query.
+   * @param handle The clause to query.
    * @return The number of literals in the clause.
    */
-  [[nodiscard]] literal_index_t get_clause_size(clause_handle clause_handle) const
+  [[nodiscard]] literal_index_t get_clause_size(clause_handle handle) const
   {
-    return m_clauses[clause_handle].size();
+    return m_clauses[handle].size();
   }
 
   /**
    * @brief Get the variable of the literal at the given index in the clause.
    *
-   * @param clause_handle The clause to query.
+   * @param handle The clause to query.
    * @param index The index of the literal to query.
    * @return The literal at the given index in the clause.
    */
-  [[nodiscard]] variable_handle get_clause_variable(clause_handle clause_handle, literal_index_t index) const
+  [[nodiscard]] variable_handle get_clause_variable(clause_handle handle, literal_index_t index) const
   {
-    return m_clauses[clause_handle].get_variable(index);
+    return m_clauses[handle].get_variable(index);
   }
 
-  /** @brief Get the value of the literal at the given index in the clause.
-   * @param clause_handle The clause to query.
+  /**
+   * @brief Get the value of the literal at the given index in the clause.
+   * @param handle The clause to query.
    * @param index The index of the literal to query.
    * @return The value of the literal at the given index in the clause.
    */
-  [[nodiscard]] bool is_clause_positive_literal(clause_handle clause_handle, literal_index_t index) const
+  [[nodiscard]] bool is_clause_positive_literal(clause_handle handle, literal_index_t index) const
   {
-    return m_clauses[clause_handle].is_positive_literal(index);
+    return m_clauses[handle].is_positive_literal(index);
   }
 
   /**
@@ -189,10 +190,10 @@ public:
   /**
    * @brief Logs the specified clause with the given prefix text.
    *
-   * @param clause_handle The handle to the clause to be logged.
+   * @param handle The handle to the clause to be logged.
    * @param prefix_text The prefix text to be included in the log.
    */
-  void log_clause(clause_handle clause_handle, const std::string_view &prefix_text) const;
+  void log_clause(clause_handle handle, const std::string_view &prefix_text) const;
 
 private:
   /**

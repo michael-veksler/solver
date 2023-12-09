@@ -240,12 +240,12 @@ auto cdcl_sat<Strategy>::create_clause(const cdcl_sat_conflict_analysis_algo<Str
 
 // implement log_clause
 template<cdcl_sat_strategy Strategy>
-void cdcl_sat<Strategy>::log_clause(clause_handle clause_handle, const std::string_view &prefix_text) const
+void cdcl_sat<Strategy>::log_clause(clause_handle handle, const std::string_view &prefix_text) const
 {
-  if (clause_handle >= m_clauses.size()) {
-    log_info(*this, "{} {}=invalid", prefix_text, clause_handle);
+  if (handle >= m_clauses.size()) {
+    log_info(*this, "{} {}=invalid", prefix_text, handle);
   } else {
-    log_info(*this, "{} {}={}", prefix_text, clause_handle, m_clauses.at(clause_handle));
+    log_info(*this, "{} {}={}", prefix_text, handle, m_clauses.at(handle));
   }
 }
 
