@@ -32,6 +32,15 @@ template<cdcl_sat_strategy Strategy> struct cdcl_sat_conflict_analysis_algo
   cdcl_sat_conflict_analysis_algo(const cdcl_sat &solver_in, clause_handle conflicting_clause_handle);
 
   /**
+   * @brief Analyze the conflict and generate the clause.
+   *
+   * @return true if the conflict was resolved, false if the problem is UNSAT.
+   */
+  [[nodiscard]] bool analyze_conflict();
+
+  [[nodiscard]] std::string to_string() const;
+
+  /**
    * @brief Get the decision level of the latest nt-th literal in the generated clause.
    *
    *
@@ -41,9 +50,17 @@ template<cdcl_sat_strategy Strategy> struct cdcl_sat_conflict_analysis_algo
    */
   [[nodiscard]] level_t get_level(unsigned distance_from_latest = 0) const
   {
+    if (distance_from_latest >= implication_depth_to_var.size()) { return 0; }
     const variable_handle var = std::next(implication_depth_to_var.rbegin(), distance_from_latest)->second;
     return solver.get_var_decision_level(var);
   }
+
+  template<std::invocable<variable_handle, bool> ApplyFunc> void foreach_conflict_literal(ApplyFunc &&func) const
+  {
+    for (const auto &[var, literal] : conflict_literals) { func(var, literal); }
+  }
+
+private:
   /**
    * @brief Is this a unit clause?
    *
@@ -86,7 +103,6 @@ template<cdcl_sat_strategy Strategy> struct cdcl_sat_conflict_analysis_algo
    * @return The handle of the latest implied-variable.
    */
   [[nodiscard]] variable_handle get_latest_implied_var() const { return implication_depth_to_var.rbegin()->second; }
-  [[nodiscard]] std::string to_string() const;
 
   const cdcl_sat &solver;
   std::map<variable_handle, bool> conflict_literals;
