@@ -6,6 +6,7 @@
 #include "solver/domain_utils.hpp"
 #include "solver/sat_types.hpp"
 #include <boost/numeric/conversion/cast.hpp>
+#include <functional>
 #include <solver/solver_library_export.hpp>
 #include <solver/state_saver.hpp>
 
@@ -76,14 +77,7 @@ auto cdcl_sat<Strategy>::analyze_conflict(clause_handle conflicting_clause)
   -> std::optional<std::pair<level_t, clause_handle>>
 {
   conflict_analysis_algo algo(*this, conflicting_clause);
-  while (true) {
-    algo.resolve(algo.get_latest_implied_var());
-    if (algo.empty() || algo.size() == 1 || algo.is_unit()) { break; }
-  }
-  log_info(*this, "conflict clause={}", algo);
-  if (algo.size() == 1) {
-    return { { 0, create_clause(algo) } };
-  } else if (algo.is_unit()) {
+  if (algo.analyze_conflict()) {
     return { { algo.get_level(1), create_clause(algo) } };
   }
   return std::nullopt;
@@ -233,8 +227,7 @@ auto cdcl_sat<Strategy>::create_clause(const cdcl_sat_conflict_analysis_algo<Str
   -> clause_handle
 {
   const auto ret = boost::numeric_cast<clause_handle>(m_clauses.size());
-  clause &added = add_clause();
-  for (auto [var_num, is_positive] : conflict_analysis.conflict_literals) { added.add_literal(var_num, is_positive); }
+  conflict_analysis.foreach_conflict_literal(std::bind_front(&clause::add_literal, std::ref(add_clause())));
   return ret;
 }
 

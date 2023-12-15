@@ -29,6 +29,15 @@
 
 namespace solver {
 
+template<cdcl_sat_strategy Strategy> bool cdcl_sat_conflict_analysis_algo<Strategy>::analyze_conflict()
+{
+  do {
+    resolve(get_latest_implied_var());
+  } while (!empty() && size() != 1 && !is_unit());
+  log_info(solver, "conflict clause={}", *this);
+  return !empty();
+}
+
 template<cdcl_sat_strategy Strategy> std::string cdcl_sat_conflict_analysis_algo<Strategy>::to_string() const
 {
   std::string ret = "{";
