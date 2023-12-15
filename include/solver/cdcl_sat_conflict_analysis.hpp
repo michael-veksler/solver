@@ -55,8 +55,7 @@ template<cdcl_sat_strategy Strategy> struct cdcl_sat_conflict_analysis_algo
     return solver.get_var_decision_level(var);
   }
 
-  template <std::invocable<variable_handle, bool> ApplyFunc>
-  void foreach_conflict_literal(ApplyFunc &&func) const
+  template<std::invocable<variable_handle, bool> ApplyFunc> void foreach_conflict_literal(ApplyFunc &&func) const
   {
     for (const auto &[var, literal] : conflict_literals) { func(var, literal); }
   }

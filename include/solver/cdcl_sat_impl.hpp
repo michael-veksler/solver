@@ -77,9 +77,7 @@ auto cdcl_sat<Strategy>::analyze_conflict(clause_handle conflicting_clause)
   -> std::optional<std::pair<level_t, clause_handle>>
 {
   conflict_analysis_algo algo(*this, conflicting_clause);
-  if (algo.analyze_conflict()) {
-    return { { algo.get_level(1), create_clause(algo) } };
-  }
+  if (algo.analyze_conflict()) { return { { algo.get_level(1), create_clause(algo) } }; }
   return std::nullopt;
 }
 
