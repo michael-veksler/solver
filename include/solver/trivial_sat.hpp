@@ -44,6 +44,8 @@ public:
   [[nodiscard]] bool get_variable_value(variable_handle var) const { return solver::get_value(m_domains[var]); }
 
 private:
+  void validate_clauses() const;
+
   [[nodiscard]] std::pair<solve_status, uint64_t> solve_recursive(std::vector<binary_domain>::iterator depth,
     uint64_t num_attempts) const;
 
@@ -87,6 +89,15 @@ public:
   }
   [[nodiscard]] size_t size() const { return m_literals.size(); }
 
+  friend std::ostream &operator<<(std::ostream &out, const clause &the_clause)
+  {
+    out << "{ ";
+    for (unsigned i = 0; i < the_clause.size(); ++i) {
+      out << the_clause.get_variable(i) << (the_clause.is_positive_literal(i) ? " " : " !");
+    }
+    return out << '}';
+  }
+
 
 private:
   /**
@@ -115,5 +126,7 @@ inline void trivial_sat::reserve_clauses(unsigned clause_count) { m_clauses.rese
 std::vector<trivial_sat::variable_handle> create_variables(trivial_sat &solver, unsigned num_vars);
 
 }// namespace solver
+
+template<> struct fmt::formatter<solver::trivial_sat::clause> : fmt::ostream_formatter {};
 
 #endif

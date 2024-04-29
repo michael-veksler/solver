@@ -48,7 +48,7 @@ endmacro()
 
 macro(solver_enable_clang_tidy target WARNINGS_AS_ERRORS)
   if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    # Currently, clang-tidy works only on macos with clang, don't set CALGTIDY on anything else 
+    # Currently, clang-tidy works only on macos with clang, don't set CALGTIDY on anything else
     if(
     CMAKE_CXX_COMPILER_ID
     MATCHES
@@ -81,9 +81,13 @@ macro(solver_enable_clang_tidy target WARNINGS_AS_ERRORS)
       endif()
     endif()
 
+    if (NOT DEFINED CLANG_TIDY_EXTRA_OPTIONS)
+      set(CLANG_TIDY_EXTRA_OPTIONS "")
+    endif()
     # construct the clang-tidy command line
     set(CLANG_TIDY_OPTIONS
         ${CLANGTIDY}
+        ${CLANG_TIDY_EXTRA_OPTIONS}
         -extra-arg=-Wno-unknown-warning-option
         -extra-arg=-Wno-ignored-optimization-argument
         -extra-arg=-Wno-unused-command-line-argument

@@ -47,7 +47,7 @@ template<cdcl_sat_strategy Strategy>
 std::vector<typename cdcl_sat<Strategy>::variable_handle> create_variables(cdcl_sat<Strategy> &solver,
   unsigned num_vars)
 {
-  std::vector<typename cdcl_sat<Strategy>::variable_handle> variables;// NOLINT
+  std::vector<typename cdcl_sat<Strategy>::variable_handle> variables;
   variables.reserve(num_vars);
   std::generate_n(std::back_inserter(variables), num_vars, [&solver] { return solver.add_var(); });
   return variables;

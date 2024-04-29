@@ -21,9 +21,23 @@ std::vector<trivial_sat::variable_handle> create_variables(trivial_sat &solver, 
 solve_status trivial_sat::solve()
 {
   const uint64_t initial_num_attempts = 0;
+  validate_clauses();
   auto [status, num_attempts] = solve_recursive(std::next(m_domains.begin()), initial_num_attempts);
   std::ignore = num_attempts;
   return status;
+}
+
+void trivial_sat::validate_clauses() const
+{
+  for (const clause &tested : m_clauses) {
+    for (unsigned i = 0; i != tested.size(); ++i) {
+      const auto variable = tested.get_variable(i);
+      if(variable >= m_domains.size()) {
+        throw std::out_of_range(fmt::format("Variable index out of range for clause {}", tested));
+      }
+    }
+    if (has_conflict(tested)) { throw std::logic_error("Clause has conflict"); }
+  }
 }
 
 std::pair<solve_status, uint64_t> trivial_sat::solve_recursive(std::vector<binary_domain>::iterator depth,// NOLINT

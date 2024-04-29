@@ -4,6 +4,7 @@
 #include "solver/cdcl_sat_class.hpp"
 #include "solver/domain_utils.hpp"
 #include <solver/solver_library_export.hpp>
+#include <stdexcept>
 
 namespace solver {
 template<cdcl_sat_strategy Strategy> class cdcl_sat_clause
@@ -29,6 +30,10 @@ public:
   void reserve(literal_index_t num_literals) { m_literals.reserve(num_literals); }
   void add_literal(variable_handle var_num, bool is_positive)
   {
+    if (var_num > static_cast<variable_handle>(std::numeric_limits<int>::max()))
+    {
+      throw std::out_of_range("Variable number is too large");
+    }
     m_literals.push_back(is_positive ? static_cast<int>(var_num) : -static_cast<int>(var_num));
   }
 
