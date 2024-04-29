@@ -148,7 +148,7 @@ TEST_CASE("all_diff problem", "[trivial_sat]")// NOLINT
 
   REQUIRE(problem.solver.solve() == solve_status::SAT);
   std::vector<bool> found_bit(problem.integer_values[0].vars.size(), false);
-  for (one_hot_int &integer_value : problem.integer_values) {
+  for (const one_hot_int &integer_value : problem.integer_values) {
     bool found_bit_in_value = false;
     for (unsigned i = 0; i != integer_value.vars.size(); ++i) {
       const bool bit_value = problem.solver.get_variable_value(integer_value.vars[i]);
