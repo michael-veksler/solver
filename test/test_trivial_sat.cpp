@@ -233,3 +233,16 @@ TEST_CASE("Out of range literal", "[trivial_sat]") // NOLINT
   REQUIRE_THROWS_AS(clause.is_positive_literal(var2 + 1), std::out_of_range);
 }
 
+// Test that adding an invalid and big variable name throws an exception during sat.solve().
+TEST_CASE("Out of range variable", "[trivial_sat]") // NOLINT
+{
+  trivial_sat sat;
+  const trivial_sat::variable_handle var1 = sat.add_var();
+  const trivial_sat::variable_handle var2 = sat.add_var();
+  trivial_sat::clause &clause = sat.add_clause();
+  clause.add_literal(var1, false);
+  clause.add_literal(var2, true);
+  clause.add_literal(var2 + 1, true);
+
+  REQUIRE_THROWS_AS(sat.solve(), std::out_of_range);
+}
