@@ -91,9 +91,15 @@ public:
 
   friend std::ostream &operator<<(std::ostream &out, const clause &the_clause)
   {
-    out << "{ ";
+    out << '{';
+    std::string_view prefix;
     for (unsigned i = 0; i < the_clause.size(); ++i) {
-      out << the_clause.get_variable(i) << (the_clause.is_positive_literal(i) ? " " : " !");
+      out << prefix;
+      if (!the_clause.is_positive_literal(i)) {
+        out << '-';
+      }
+      out << the_clause.get_variable(i);
+      prefix=", ";
     }
     return out << '}';
   }

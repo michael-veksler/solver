@@ -60,7 +60,7 @@ public:
 
   friend std::ostream &operator<<(std::ostream &out, const cdcl_sat_clause<Strategy> &clause)
   {
-    out << "{ ";
+    out << '{';
     for (unsigned i = 0; i != clause.m_literals.size(); ++i) {
       if (i != 0) { out << ", "; }
       out << clause.m_literals[i];

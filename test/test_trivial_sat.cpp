@@ -195,3 +195,16 @@ TEST_CASE("max attempts", "[trivial_sat]")
   REQUIRE(expected_unsat.solver.solve() == solve_status::UNSAT);
   REQUIRE(expected_unknown.solver.solve() == solve_status::UNKNOWN);
 }
+
+TEST_CASE("Clause ostream operator", "[trivial_sat]") // NOLINT
+{
+  trivial_sat sat;
+  const trivial_sat::variable_handle var1 = sat.add_var();
+  const trivial_sat::variable_handle var2 = sat.add_var();
+  trivial_sat::clause &clause = sat.add_clause();
+  clause.add_literal(var1, true);
+  clause.add_literal(var2, false);
+  std::ostringstream oss;
+  oss << clause;
+  REQUIRE(oss.str() == "{1, -2}");
+}
