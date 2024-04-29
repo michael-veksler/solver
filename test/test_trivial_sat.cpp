@@ -208,3 +208,28 @@ TEST_CASE("Clause ostream operator", "[trivial_sat]") // NOLINT
   oss << clause;
   REQUIRE(oss.str() == "{1, -2}");
 }
+
+TEST_CASE("Clause fmt::format", "[trivial_sat]") // NOLINT
+{
+  trivial_sat sat;
+  const trivial_sat::variable_handle var1 = sat.add_var();
+  const trivial_sat::variable_handle var2 = sat.add_var();
+  trivial_sat::clause &clause = sat.add_clause();
+  clause.reserve(1); // side-effect, check that it works even when the reservation is small.
+  clause.add_literal(var1, false);
+  clause.add_literal(var2, true);
+  REQUIRE(fmt::format("{}", clause) == "{-1, 2}");
+}
+
+TEST_CASE("Out of range literal", "[trivial_sat]") // NOLINT
+{
+  trivial_sat sat;
+  const trivial_sat::variable_handle var1 = sat.add_var();
+  const trivial_sat::variable_handle var2 = sat.add_var();
+  trivial_sat::clause &clause = sat.add_clause();
+  clause.add_literal(var1, false);
+  clause.add_literal(var2, true);
+  REQUIRE_THROWS_AS(clause.get_variable(var2 + 1), std::out_of_range);
+  REQUIRE_THROWS_AS(clause.is_positive_literal(var2 + 1), std::out_of_range);
+}
+

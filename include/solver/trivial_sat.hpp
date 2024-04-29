@@ -3,9 +3,10 @@
 
 #include "binary_domain.hpp"
 #include "sat_types.hpp"
-#include <cassert>
+#include "assert.hpp"
 #include <cinttypes>
 #include <solver/solver_library_export.hpp>
+#include <stdexcept>
 #include <vector>
 
 namespace solver {
@@ -78,13 +79,13 @@ public:
   }
   [[nodiscard]] variable_handle get_variable(unsigned literal_num) const
   {
-    assert(literal_num < m_literals.size()); // NOLINT
+    assert_bounds(literal_num);
     int literal = m_literals[literal_num];
     return literal > 0 ? static_cast<variable_handle>(literal) : static_cast<variable_handle>(-literal);
   }
   [[nodiscard]] bool is_positive_literal(unsigned literal_num) const
   {
-    assert(literal_num < m_literals.size()); // NOLINT
+    assert_bounds(literal_num);
     return m_literals[literal_num] > 0;
   }
   [[nodiscard]] size_t size() const { return m_literals.size(); }
@@ -106,6 +107,13 @@ public:
 
 
 private:
+  // implement assert_bounds
+  void assert_bounds(unsigned literal_num) const
+  {
+    if (literal_num >= m_literals.size()) {
+      throw std::out_of_range("literal_num out of bounds");
+    }
+  }
   /**
    * @brief The literals of the CNF
    *
