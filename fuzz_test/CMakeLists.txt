@@ -18,6 +18,12 @@ target_compile_options(fuzz_tester PRIVATE -fsanitize=fuzzer)
 
 target_link_system_libraries(solver_library PRIVATE spdlog::spdlog)
 
+target_include_directories(
+  fuzz_tester
+  PRIVATE
+  ${PROJECT_SOURCE_DIR}/test
+)
+
 # Allow short runs during automated testing to see if something new breaks
 set(FUZZ_RUNTIME
     30
