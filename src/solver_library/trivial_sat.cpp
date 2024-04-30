@@ -44,11 +44,10 @@ std::pair<solve_status, uint64_t> trivial_sat::solve_recursive(std::vector<binar
   uint64_t num_attempts) const
 {
   if (has_conflict()) {
-    if (num_attempts >= m_max_attempts) {
-      return { solve_status::UNKNOWN, num_attempts + 1 };
-    } else {
-      return { solve_status::UNSAT, num_attempts + 1 };
-    }
+    const solve_status stat = num_attempts >= m_max_attempts ?
+        solve_status::UNKNOWN :
+        solve_status::UNSAT;
+    return { stat, num_attempts + 1 };
   }
   for (; depth != m_domains.end(); ++depth) {
     if (!depth->is_universal()) { continue; }
