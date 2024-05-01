@@ -20,14 +20,16 @@ struct random_stream
     data_span = data_span.subspan(sizeof(T));
     return ret;
   }
-  template<> std::optional<bool> get()
-  {
-    const auto byte_value = get<uint8_t>();
-    if (!byte_value) { return std::nullopt; }
-    return *byte_value & 1U;
-  }
   std::span<const uint8_t> data_span;
 
 }; // struct random_stream
+
+template<> inline std::optional<bool> random_stream::get()
+{
+  const auto byte_value = get<uint8_t>();
+  if (!byte_value) { return std::nullopt; }
+  return *byte_value & 1U;
+}
+
 } // namespace solver::fuzzing
 #endif // FUZZ_UTILS_HPP_

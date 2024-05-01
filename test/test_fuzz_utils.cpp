@@ -23,12 +23,14 @@ TEST_CASE("struct stream", "[fuzz_utils]") // NOLINT
     uint8_t a;
     uint32_t b;
     uint8_t c;
+    uint8_t d;
   };
-  test_struct test_data{1, 0x12345678U, 15}; // NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+  test_struct test_data{1, 0x12345678U, 15, 0}; // NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   random_stream data(reinterpret_cast<const uint8_t*>(&test_data), sizeof(test_data)); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
   REQUIRE(data.get<uint8_t>().value() == test_data.a);
   REQUIRE(data.get<uint32_t>().value() == test_data.b);
   REQUIRE(!data.get<uint32_t>().has_value());
-  REQUIRE(data.get<uint8_t>().value() == test_data.c);
+  REQUIRE(data.get<bool>().value() == bool(test_data.c));
+  REQUIRE(data.get<bool>().value() == bool(test_data.d));
   REQUIRE(!data.get<uint8_t>().has_value());
 }
