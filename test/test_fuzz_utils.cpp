@@ -16,15 +16,27 @@ TEST_CASE("empty random_stream", "[fuzz_utils]") // NOLINT
   REQUIRE(!empty.get<bool>().has_value());
 }
 
+#ifdef __GNUC__
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
+#define PACK( DECLARATION ) DECLARATION __attribute__((__packed__))
+#endif
+
+#ifdef _MSC_VER
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
+#define PACK( DECLARATION ) __pragma( pack(push, 1) ) DECLARATION __pragma( pack(pop))
+#endif
+
 TEST_CASE("struct stream", "[fuzz_utils]") // NOLINT
 {
-  struct __attribute__((packed)) test_struct
-  {
-    uint8_t a;
-    uint32_t b;
-    uint8_t c;
-    uint8_t d;
-  };
+  PACK(
+    struct test_struct
+    {
+      uint8_t a;
+      uint32_t b;
+      uint8_t c;
+      uint8_t d;
+    }
+  );
   test_struct test_data{1, 0x12345678U, 15, 0}; // NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   random_stream data(reinterpret_cast<const uint8_t*>(&test_data), sizeof(test_data)); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
   REQUIRE(data.get<uint8_t>().value() == test_data.a);
