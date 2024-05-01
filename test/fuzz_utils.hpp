@@ -5,6 +5,7 @@
 #include <optional>
 #include <span>
 #include <cstring>
+#include <type_traits>
 
 namespace solver::fuzzing {
 
@@ -16,6 +17,11 @@ struct random_stream
   {
     if (data_span.size() < sizeof(T)) { return std::nullopt; }
     T ret = 0;
+    if constexpr (std::is_same_v<T, bool>) {
+      ret = data_span[0];
+    } else {
+      std::memcpy(&ret, data_span.data(), sizeof(T));
+    }
     std::memcpy(&ret, data_span.data(), sizeof(T));
     data_span = data_span.subspan(sizeof(T));
     return ret;
@@ -24,12 +30,6 @@ struct random_stream
 
 }; // struct random_stream
 
-template<> inline std::optional<bool> random_stream::get()
-{
-  const auto byte_value = get<uint8_t>();
-  if (!byte_value) { return std::nullopt; }
-  return *byte_value & 1U;
-}
 
 } // namespace solver::fuzzing
 #endif // FUZZ_UTILS_HPP_
