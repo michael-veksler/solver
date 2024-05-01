@@ -43,7 +43,7 @@ TEST_CASE("struct stream", "[fuzz_utils]") // NOLINT
   REQUIRE(got_a.value() == test_data.a);
 
   const auto got_b = data.get<uint32_t>();
-  REQUIRE(hot_b.value() == test_data.b);
+  REQUIRE(got_b.value() == test_data.b);
 
   const auto bad_c = data.get<uint32_t>();  
   REQUIRE(!bad_c.has_value());
