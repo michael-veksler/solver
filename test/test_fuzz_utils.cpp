@@ -39,10 +39,21 @@ TEST_CASE("struct stream", "[fuzz_utils]") // NOLINT
   );
   test_struct test_data{1, 0x12345678U, 15, 0}; // NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   random_stream data(reinterpret_cast<const uint8_t*>(&test_data), sizeof(test_data)); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-  REQUIRE(data.get<uint8_t>().value() == test_data.a);
-  REQUIRE(data.get<uint32_t>().value() == test_data.b);
-  REQUIRE(!data.get<uint32_t>().has_value());
-  REQUIRE(data.get<bool>().value() == bool(test_data.c));
-  REQUIRE(data.get<bool>().value() == bool(test_data.d));
-  REQUIRE(!data.get<uint8_t>().has_value());
+  const auto got_a = data.get<uint8_t>();
+  REQUIRE(got_a.value() == test_data.a);
+
+  const auto got_b = data.get<uint32_t>();
+  REQUIRE(hot_b.value() == test_data.b);
+
+  const auto bad_c = data.get<uint32_t>();  
+  REQUIRE(!bad_c.has_value());
+
+  const auto got_c = data.get<bool>();
+  REQUIRE(got_c.value() == bool(test_data.c));
+
+  const auto got_d = data.get<bool>();
+  REQUIRE(got_d.value() == bool(test_data.d));
+
+  const auto bad_end = data.get<uint8_t>();
+  REQUIRE(!bad_end.has_value());
 }
