@@ -3,9 +3,10 @@
 
 #include "binary_domain.hpp"
 #include "sat_types.hpp"
-#include <cassert>
+#include "assert.hpp"
 #include <cinttypes>
 #include <solver/solver_library_export.hpp>
+#include <stdexcept>
 #include <vector>
 
 namespace solver {
@@ -44,6 +45,8 @@ public:
   [[nodiscard]] bool get_variable_value(variable_handle var) const { return solver::get_value(m_domains[var]); }
 
 private:
+  void validate_clauses() const;
+
   [[nodiscard]] std::pair<solve_status, uint64_t> solve_recursive(std::vector<binary_domain>::iterator depth,
     uint64_t num_attempts) const;
 
@@ -76,19 +79,41 @@ public:
   }
   [[nodiscard]] variable_handle get_variable(unsigned literal_num) const
   {
-    assert(literal_num < m_literals.size()); // NOLINT
+    assert_bounds(literal_num);
     int literal = m_literals[literal_num];
     return literal > 0 ? static_cast<variable_handle>(literal) : static_cast<variable_handle>(-literal);
   }
   [[nodiscard]] bool is_positive_literal(unsigned literal_num) const
   {
-    assert(literal_num < m_literals.size()); // NOLINT
+    assert_bounds(literal_num);
     return m_literals[literal_num] > 0;
   }
   [[nodiscard]] size_t size() const { return m_literals.size(); }
 
+  friend std::ostream &operator<<(std::ostream &out, const clause &the_clause)
+  {
+    out << '{';
+    std::string_view prefix;
+    for (unsigned i = 0; i < the_clause.size(); ++i) {
+      out << prefix;
+      if (!the_clause.is_positive_literal(i)) {
+        out << '-';
+      }
+      out << the_clause.get_variable(i);
+      prefix=", ";
+    }
+    return out << '}';
+  }
+
 
 private:
+  // implement assert_bounds
+  void assert_bounds(unsigned literal_num) const
+  {
+    if (literal_num >= m_literals.size()) {
+      throw std::out_of_range("literal_num out of bounds");
+    }
+  }
   /**
    * @brief The literals of the CNF
    *
@@ -115,5 +140,7 @@ inline void trivial_sat::reserve_clauses(unsigned clause_count) { m_clauses.rese
 std::vector<trivial_sat::variable_handle> create_variables(trivial_sat &solver, unsigned num_vars);
 
 }// namespace solver
+
+template<> struct fmt::formatter<solver::trivial_sat::clause> : fmt::ostream_formatter {};
 
 #endif

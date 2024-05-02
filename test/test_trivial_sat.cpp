@@ -148,7 +148,7 @@ TEST_CASE("all_diff problem", "[trivial_sat]")// NOLINT
 
   REQUIRE(problem.solver.solve() == solve_status::SAT);
   std::vector<bool> found_bit(problem.integer_values[0].vars.size(), false);
-  for (one_hot_int &integer_value : problem.integer_values) {
+  for (const one_hot_int &integer_value : problem.integer_values) {
     bool found_bit_in_value = false;
     for (unsigned i = 0; i != integer_value.vars.size(); ++i) {
       const bool bit_value = problem.solver.get_variable_value(integer_value.vars[i]);
@@ -194,4 +194,55 @@ TEST_CASE("max attempts", "[trivial_sat]")
   all_literal_combinations expected_unknown((1U << all_literal_combinations::NUM_VARS)-1);
   REQUIRE(expected_unsat.solver.solve() == solve_status::UNSAT);
   REQUIRE(expected_unknown.solver.solve() == solve_status::UNKNOWN);
+}
+
+TEST_CASE("Clause ostream operator", "[trivial_sat]") // NOLINT
+{
+  trivial_sat sat;
+  const trivial_sat::variable_handle var1 = sat.add_var();
+  const trivial_sat::variable_handle var2 = sat.add_var();
+  trivial_sat::clause &clause = sat.add_clause();
+  clause.add_literal(var1, true);
+  clause.add_literal(var2, false);
+  std::ostringstream oss;
+  oss << clause;
+  REQUIRE(oss.str() == "{1, -2}");
+}
+
+TEST_CASE("Clause fmt::format", "[trivial_sat]") // NOLINT
+{
+  trivial_sat sat;
+  const trivial_sat::variable_handle var1 = sat.add_var();
+  const trivial_sat::variable_handle var2 = sat.add_var();
+  trivial_sat::clause &clause = sat.add_clause();
+  clause.reserve(1); // side-effect, check that it works even when the reservation is small.
+  clause.add_literal(var1, false);
+  clause.add_literal(var2, true);
+  REQUIRE(fmt::format("{}", clause) == "{-1, 2}");
+}
+
+TEST_CASE("Out of range literal", "[trivial_sat]") // NOLINT
+{
+  trivial_sat sat;
+  const trivial_sat::variable_handle var1 = sat.add_var();
+  const trivial_sat::variable_handle var2 = sat.add_var();
+  trivial_sat::clause &clause = sat.add_clause();
+  clause.add_literal(var1, false);
+  clause.add_literal(var2, true);
+  REQUIRE_THROWS_AS(clause.get_variable(var2 + 1), std::out_of_range);
+  REQUIRE_THROWS_AS(clause.is_positive_literal(var2 + 1), std::out_of_range);
+}
+
+// Test that adding an invalid and big variable name throws an exception during sat.solve().
+TEST_CASE("Out of range variable", "[trivial_sat]") // NOLINT
+{
+  trivial_sat sat;
+  const trivial_sat::variable_handle var1 = sat.add_var();
+  const trivial_sat::variable_handle var2 = sat.add_var();
+  trivial_sat::clause &clause = sat.add_clause();
+  clause.add_literal(var1, false);
+  clause.add_literal(var2, true);
+  clause.add_literal(var2 + 1, true);
+
+  REQUIRE_THROWS_AS(sat.solve(), std::out_of_range);
 }

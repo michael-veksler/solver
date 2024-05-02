@@ -53,7 +53,6 @@ set_tests_properties(cli.trivial_simple_unsat PROPERTIES PASS_REGULAR_EXPRESSION
 
 file(GLOB test_source_files "*.cpp")
 
-
 add_executable(tests ${test_source_files})
 target_link_libraries(
   tests
