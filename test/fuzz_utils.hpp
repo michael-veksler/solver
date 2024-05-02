@@ -22,7 +22,6 @@ struct random_stream
     } else {
       std::memcpy(&ret, data_span.data(), sizeof(T));
     }
-    std::memcpy(&ret, data_span.data(), sizeof(T));
     data_span = data_span.subspan(sizeof(T));
     return ret;
   }
