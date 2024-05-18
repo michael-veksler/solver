@@ -1,4 +1,5 @@
 #include "fuzz_utils.hpp"
+#include <catch2/internal/catch_test_registry.hpp>
 #include <cstdint>
 #include <solver/trivial_sat.hpp>
 
@@ -6,8 +7,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <functional>
 #include <catch2/matchers/catch_matchers_all.hpp>
+#include <type_traits>
 
 using namespace solver::fuzzing;
+using solver::literal_type;
 
 template <typename T>
 class IsBetweenMatcher : public Catch::Matchers::MatcherBase<T> {
@@ -28,6 +31,29 @@ template <typename T>
 IsBetweenMatcher<T> IsBetween(T begin, T end) {
     return { begin, end };
 }
+
+template <typename T, typename LambdaFunc> requires std::is_invocable_r_v<bool, LambdaFunc, T>
+class LambdaMatcher  : public Catch::Matchers::MatcherBase<T>
+{
+public:
+  explicit LambdaMatcher(LambdaFunc && lambda) : m_lambda(std::forward<LambdaFunc>(lambda)) {}
+  bool match(const T & value) const override
+  {
+    return m_lambda(value);
+  }
+  [[nodiscard]] std::string describe() const override {
+    return "matches lambda expression";
+  }
+
+private:
+  LambdaFunc m_lambda;
+};
+
+template <typename T, typename LambdaFunc> requires std::is_invocable_r_v<bool, LambdaFunc, T>
+LambdaMatcher<T, LambdaFunc> Matches(LambdaFunc && lambda) {
+  return { LambdaMatcher<T, LambdaFunc>(std::forward<LambdaFunc>(lambda)) };
+}
+
 
 
 TEST_CASE("empty random_stream", "[fuzz_utils]") // NOLINT(cert-err58-cpp)
@@ -95,19 +121,18 @@ TEST_CASE("generate_literal bool", "[fuzz_utils]") // NOLINT(*cognitive-complexi
     const auto literal = generator.generate_literal(zero_stream, num_vars);
     if (literal.has_value()) {
       REQUIRE_FALSE(zero_data.empty());
-      REQUIRE(literal->variable == 0);
-      REQUIRE_FALSE(literal->value);
+      REQUIRE(literal.value().variable == 0);
+      REQUIRE_FALSE(literal.value().value);
       break;
     }
   }
-  // create random_stream with 128 bytes of data with all bits set
+  // creating random_stream with 128 bytes of data with all bits set
   const std::vector<uint8_t> all_ones_data(128, 0xFF);
   random_stream all_ones_stream(all_ones_data.data(), all_ones_data.size());
   const auto all_ones_literal = generator.generate_literal(all_ones_stream, num_vars);
   REQUIRE(all_ones_literal.has_value());
-  // Require that all_ones_literal->variable is one of values in vars. Use REQUIRE_THAT and matchers.
-  REQUIRE(all_ones_literal->variable < num_vars);
-  REQUIRE(all_ones_literal->value);
+  REQUIRE(all_ones_literal.value().variable < num_vars);
+  REQUIRE(all_ones_literal.value().value);
 }
 
 
@@ -133,7 +158,6 @@ TEST_CASE("generate_literals all zero bool", "[fuzz_utils]") // NOLINT(*cognitiv
   REQUIRE(max_size >= 5);
 }
 
-// Write test to check that generate_literals returns literals with values set to 1.
 TEST_CASE("generate_literals all ones bool", "[fuzz_utils]") // NOLINT(*cognitive-complexity)
 {
   csp_generator<bool> generator;
@@ -156,6 +180,30 @@ TEST_CASE("generate_literals all ones bool", "[fuzz_utils]") // NOLINT(*cognitiv
   REQUIRE(max_size >= 5);
 }
 
+TEST_CASE("generate_literals out_of_range variable bool", "[fuzz_utils]") // NOLINT(*cognitive-complexity)
+{
+  csp_generator<bool> generator({false, true}, true);
+
+  static constexpr unsigned num_vars = 5;
+  static constexpr size_t max_size = 16UL * 1024UL;
+  std::vector<uint8_t> periodic_data;
+  periodic_data.reserve(max_size);
+  for (size_t i = 0; i < max_size; ++i) {
+    periodic_data.push_back(uint8_t(i));
+  }
+
+
+  random_stream periodic_stream(periodic_data.data(), periodic_data.size());
+  std::vector<literal_type<bool>> literals;
+  while (const auto literal = generator.generate_literal(periodic_stream, num_vars)) {
+    literals.push_back(literal.value());
+  }
+  REQUIRE_THAT(literals, Catch::Matchers::AnyMatch(Matches<literal_type<bool>>([] (const auto& literal) { return literal.variable >= num_vars; })));
+  REQUIRE_THAT(literals, Catch::Matchers::AnyMatch(Matches<literal_type<bool>>([](const auto& literal) { return literal.variable < num_vars; })));
+  REQUIRE_THAT(literals, Catch::Matchers::AnyMatch(Matches<literal_type<bool>>([](const auto& literal) { return literal.value; })));
+  REQUIRE_THAT(literals, Catch::Matchers::AnyMatch(Matches<literal_type<bool>>([](const auto& literal) { return !literal.value; })));
+}
+
 TEST_CASE("generate_literal uint16_t", "[fuzz_utils]") // NOLINT(*cognitive-complexity)
 {
   csp_generator<uint16_t> generator;
@@ -168,8 +216,8 @@ TEST_CASE("generate_literal uint16_t", "[fuzz_utils]") // NOLINT(*cognitive-comp
     const auto literal = generator.generate_literal(zero_stream, num_vars);
     if (literal.has_value()) {
       REQUIRE_FALSE(zero_data.empty());
-      REQUIRE(literal->variable < num_vars);
-      REQUIRE(literal->value == 0);
+      REQUIRE(literal.value().variable < num_vars);
+      REQUIRE(literal.value().value == 0);
       break;
     }
   }
@@ -178,9 +226,8 @@ TEST_CASE("generate_literal uint16_t", "[fuzz_utils]") // NOLINT(*cognitive-comp
   random_stream all_ones_stream(all_ones_data.data(), all_ones_data.size());
   const auto all_ones_literal = generator.generate_literal(all_ones_stream, num_vars);
   REQUIRE(all_ones_literal.has_value());
-  // Require that all_ones_literal->variable is one of values in vars. Use REQUIRE_THAT and matchers.
-  REQUIRE(all_ones_literal->variable < num_vars);
-  REQUIRE(all_ones_literal->value == std::numeric_limits<uint16_t>::max());
+  REQUIRE(all_ones_literal.value().variable < num_vars);
+  REQUIRE(all_ones_literal.value().value == std::numeric_limits<uint16_t>::max());
 }
 
 TEST_CASE("generate_literals all zero uint16_t", "[fuzz_utils]") // NOLINT(*cognitive-complexity)

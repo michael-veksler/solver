@@ -25,7 +25,7 @@ struct random_stream
     if (data_span.size() < sizeof(T)) { return std::nullopt; }
     T ret = 0;
     if constexpr (std::is_same_v<T, bool>) {
-      ret = data_span[0];
+      ret = data_span[0] % 2 != 0;
     } else {
       std::memcpy(&ret, data_span.data(), sizeof(T));
     }
@@ -62,7 +62,7 @@ public:
     if (!value) { return std::nullopt; }
     if (invalid_var) {
       while (true) {
-        const std::optional<uint16_t> variable_index = random_data.get<Domain>();
+        const std::optional<uint16_t> variable_index = random_data.get<uint16_t>();
         if (!variable_index) { return std::nullopt; }
         if (*variable_index >= num_vars) {
           return literal_type<Domain>{ .value = *value, .variable = *variable_index };
