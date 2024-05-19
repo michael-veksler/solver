@@ -131,8 +131,8 @@ TEST_CASE("generate_literal bool", "[fuzz_utils]") // NOLINT(*cognitive-complexi
   random_stream all_ones_stream(all_ones_data.data(), all_ones_data.size());
   const auto all_ones_literal = generator.generate_literal(all_ones_stream, num_vars);
   REQUIRE(all_ones_literal.has_value());
-  REQUIRE(all_ones_literal.value().variable < num_vars);
-  REQUIRE(all_ones_literal.value().value);
+  REQUIRE(all_ones_literal.value_or(literal_type<bool>{false, num_vars}).variable < num_vars);
+  REQUIRE(all_ones_literal.value_or(literal_type<bool>{false, num_vars}).value);
 }
 
 
@@ -226,8 +226,8 @@ TEST_CASE("generate_literal uint16_t", "[fuzz_utils]") // NOLINT(*cognitive-comp
   random_stream all_ones_stream(all_ones_data.data(), all_ones_data.size());
   const auto all_ones_literal = generator.generate_literal(all_ones_stream, num_vars);
   REQUIRE(all_ones_literal.has_value());
-  REQUIRE(all_ones_literal.value().variable < num_vars);
-  REQUIRE(all_ones_literal.value().value == std::numeric_limits<uint16_t>::max());
+  REQUIRE(all_ones_literal.value_or(literal_type<uint16_t>{0, num_vars}).variable < num_vars);
+  REQUIRE(all_ones_literal.value_or(literal_type<uint16_t>{0, num_vars}).value == std::numeric_limits<uint16_t>::max());
 }
 
 TEST_CASE("generate_literals all zero uint16_t", "[fuzz_utils]") // NOLINT(*cognitive-complexity)
@@ -272,4 +272,14 @@ TEST_CASE("generate_literals all ones uint16_t", "[fuzz_utils]") // NOLINT(*cogn
     }
   }
   REQUIRE(max_size >= 5);
+}
+
+
+TEST_CASE("describe matchers", "[fuzz_utils]") // NOLINT(*cognitive-complexity)
+{
+  const auto is_between = IsBetween(1, 10);
+  REQUIRE(is_between.describe() == "is between 1 and 10");
+
+  const auto lambda_matcher = Matches<int>([](int value) { return value > 0; });
+  REQUIRE(lambda_matcher.describe() == "matches lambda expression");
 }
