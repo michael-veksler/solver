@@ -46,11 +46,12 @@ public:
   template <std::integral value>
   [[nodiscard]] constexpr unsigned num_bits() const
   {
-    if (std::numeric_limits<Domain>::is_signed && m_min_val < 0) {
-      return std::numeric_limits<Domain>::digits + 1;
-    } else {
-      return num_bits(m_max_val);
+    if constexpr (std::numeric_limits<Domain>::is_signed) {
+      if (m_min_val < 0) {
+        return std::numeric_limits<Domain>::digits + 1;
+      }
     }
+    return num_bits(m_max_val);
   }
 
   std::optional<literal_type<Domain>>

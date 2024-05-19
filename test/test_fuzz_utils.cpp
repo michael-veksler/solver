@@ -185,7 +185,7 @@ TEST_CASE("generate_literals out_of_range variable bool", "[fuzz_utils]") // NOL
   csp_generator<bool> generator({false, true}, true);
 
   static constexpr unsigned num_vars = 5;
-  static constexpr size_t max_size = 16UL * 1024UL;
+  static constexpr size_t max_size = 16 * 1024ULL;
   std::vector<uint8_t> periodic_data;
   periodic_data.reserve(max_size);
   for (size_t i = 0; i < max_size; ++i) {
