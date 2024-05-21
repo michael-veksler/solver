@@ -3,9 +3,7 @@
 #include <cstdint>
 #include <solver/trivial_sat.hpp>
 
-#include <algorithm>
 #include <catch2/catch_test_macros.hpp>
-#include <functional>
 #include <catch2/matchers/catch_matchers_all.hpp>
 #include <type_traits>
 
@@ -36,7 +34,7 @@ template <typename T, typename LambdaFunc> requires std::is_invocable_r_v<bool, 
 class LambdaMatcher  : public Catch::Matchers::MatcherBase<T>
 {
 public:
-  explicit LambdaMatcher(LambdaFunc && lambda) : m_lambda(std::forward<LambdaFunc>(lambda)) {}
+  explicit LambdaMatcher(LambdaFunc && lambda) noexcept : m_lambda(std::forward<LambdaFunc>(lambda)) {}
   bool match(const T & value) const override
   {
     return m_lambda(value);

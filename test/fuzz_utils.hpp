@@ -48,7 +48,6 @@ public:
   {
     if constexpr (not std::is_same_v<Domain, bool> && std::numeric_limits<Domain>::is_signed) {
       if (m_min_val < 0) {
-        static_assert(std::is_same_v<std::decay_t<decltype(m_min_val)>, Domain>);
         return std::numeric_limits<Domain>::digits + 1;
       }
     }

@@ -30,7 +30,7 @@ jobs:
       matrix:
         os:
           - ubuntu-20.04
-          - macos-11
+          - macos-13
           - windows-2019
         compiler:
           # you can specify the version after `-` like "llvm-15.0.2".
@@ -63,7 +63,7 @@ jobs:
             enable_ipo: Off
             gcov_executable: "llvm-cov-15 gcov"
 
-          - os: macos-11
+          - os: macos-113
             enable_ipo: Off
             gcov_executable: gcov
 
