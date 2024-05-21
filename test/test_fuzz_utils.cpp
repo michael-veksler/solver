@@ -34,7 +34,8 @@ template <typename T, typename LambdaFunc> requires std::is_invocable_r_v<bool, 
 class LambdaMatcher  : public Catch::Matchers::MatcherBase<T>
 {
 public:
-  explicit LambdaMatcher(LambdaFunc && lambda) noexcept : m_lambda(std::forward<LambdaFunc>(lambda)) {}
+  explicit LambdaMatcher(LambdaFunc && lambda) noexcept
+    : m_lambda(std::move(lambda)) {}
   bool match(const T & value) const override
   {
     return m_lambda(value);
