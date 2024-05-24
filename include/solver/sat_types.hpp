@@ -1,7 +1,6 @@
 #ifndef SAT_TYPES_HPP
 #define SAT_TYPES_HPP
 
-#include <cinttypes>
 #include <string>
 #include <concepts>
 

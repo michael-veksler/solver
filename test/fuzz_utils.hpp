@@ -1,10 +1,8 @@
 #ifndef FUZZ_UTILS_HPP_
 #define FUZZ_UTILS_HPP_
 
-#include <bit>
 #include <cstdint>
 #include <limits>
-#include <numeric>
 #include <optional>
 #include <span>
 #include <cstring>
@@ -42,17 +40,6 @@ class csp_generator
 public:
   explicit csp_generator(std::pair<Domain, Domain> bounds, bool test_out_of_range) : m_min_val(bounds.first), m_max_val(bounds.second), m_test_out_of_range(test_out_of_range) {}
   csp_generator() = default;
-
-  template <std::integral value>
-  [[nodiscard]] constexpr unsigned num_bits() const
-  {
-    if constexpr (not std::is_same_v<Domain, bool> && std::numeric_limits<Domain>::is_signed) {
-      if (m_min_val < 0) {
-        return std::numeric_limits<Domain>::digits + 1;
-      }
-    }
-    return num_bits(m_max_val);
-  }
 
   std::optional<literal_type<Domain>>
   generate_literal(random_stream &random_data, unsigned num_vars)
