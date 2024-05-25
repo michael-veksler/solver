@@ -31,7 +31,7 @@ IsBetweenMatcher<T> IsBetween(T begin, T end) {
 }
 
 template <typename T, typename LambdaFunc> requires std::is_invocable_r_v<bool, LambdaFunc, T>
-class LambdaMatcher  : public Catch::Matchers::MatcherBase<T>
+class LambdaMatcher  : public Catch::Matchers::MatcherBase<T> // NOLINT(*exception-escape)
 {
 public:
 

@@ -25,7 +25,7 @@ function(solver_setup_dependencies)
   endif()
 
   set(BOOST_MODULES_LIST numeric_conversion config core type_traits mpl preprocessor throw_exception assert icl static_assert concept_check detail move iterator range utility)
-  set(BOOST_VERSION 1.81.0)
+  set(BOOST_VERSION 1.83.0)
   foreach(boost_package ${BOOST_MODULES_LIST})
     if(NOT TARGET Boost::${boost_package})
       CPMAddPackage(
