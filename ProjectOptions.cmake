@@ -99,7 +99,7 @@ macro(solver_global_options)
 
   if(solver_ENABLE_HARDENING AND solver_ENABLE_GLOBAL_HARDENING)
     include(cmake/Hardening.cmake)
-    if(NOT SUPPORTS_UBSAN
+    if(NOT SUPPORTS_UBSAN 
        OR solver_ENABLE_SANITIZER_UNDEFINED
        OR solver_ENABLE_SANITIZER_ADDRESS
        OR solver_ENABLE_SANITIZER_THREAD
@@ -185,7 +185,7 @@ macro(solver_local_options)
 
   if(solver_ENABLE_HARDENING AND NOT solver_ENABLE_GLOBAL_HARDENING)
     include(cmake/Hardening.cmake)
-    if(NOT SUPPORTS_UBSAN
+    if(NOT SUPPORTS_UBSAN 
        OR solver_ENABLE_SANITIZER_UNDEFINED
        OR solver_ENABLE_SANITIZER_ADDRESS
        OR solver_ENABLE_SANITIZER_THREAD
