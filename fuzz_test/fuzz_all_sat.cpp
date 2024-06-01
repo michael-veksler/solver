@@ -1,4 +1,5 @@
 #include "fuzz_utils.hpp"
+#include "solver/sat_types.hpp"
 #include <algorithm>
 #include <bits/ranges_util.h>
 #include <cstdint>
@@ -11,43 +12,14 @@
 
 using namespace solver;
 using solver::fuzzing::random_stream;
+using solver::fuzzing::csp_generator;
 
-static std::optional<literal_type>
-  generate_literal(random_stream &random_data, std::vector<unsigned> &available_var_idx, bool test_out_of_range)
-{
-  const bool invalid_var = test_out_of_range && random_data.get<uint8_t>().value_or(1) == 0;
-
-  const std::optional<unsigned> coded_literal = random_data.get<uint16_t>();
-  if (!coded_literal) { return std::nullopt; }
-  const unsigned variable_index = invalid_var ? (*coded_literal >> 1U) :
-    available_var_idx[(*coded_literal >> 1U) % available_var_idx.size()];
-  return literal_type{ .is_positive = (*coded_literal & 1U) == 1, .variable = variable_index };
-}
-
-static std::vector<literal_type> generate_literals(random_stream &random_data, size_t num_vars, bool test_out_of_range)
-{
-  const std::optional<unsigned> num_literals_source = random_data.get<uint16_t>();
-  if (!num_literals_source) { return {}; }
-  const unsigned num_literals = *num_literals_source % num_vars + 1;
-  std::vector<literal_type> literals;
-  literals.reserve(num_literals);
-  std::vector<unsigned> available_var_idx(num_vars);
-  std::iota(available_var_idx.begin(), available_var_idx.end(), 0U);
-  for (unsigned i = 0; i != num_literals; ++i) {
-    std::optional<literal_type> literal = generate_literal(random_data, available_var_idx, test_out_of_range);
-    if (!literal) { break; }
-    literals.push_back(*literal);
-  }
-  return literals;
-}
-
-
-static void add_clause(auto &solver, const auto & variables, const std::vector<literal_type> & literals, bool test_out_of_range)
+static void add_clause(auto &solver, const auto & variables, const std::vector<literal_type<bool>> & literals, bool test_out_of_range)
 {
   auto &clause = solver.add_clause();
   for (const auto literal : literals) {
     if (literal.variable < variables.size()) {
-      clause.add_literal(variables[literal.variable], literal.is_positive);
+      clause.add_literal(variables[literal.variable], literal.value);
     } else {
       if (!test_out_of_range) { throw std::out_of_range("Variable index out of range"); }
       uint32_t var = literal.variable;
@@ -57,7 +29,7 @@ static void add_clause(auto &solver, const auto & variables, const std::vector<l
       while (const bool is_valid_var = std::ranges::find(variables, var) != variables.end()) {
         ++var;
       }
-      clause.add_literal(var, literal.is_positive);
+      clause.add_literal(var, literal.value);
     }
   }
 }
@@ -66,13 +38,13 @@ static void validate_solution(const auto &solver, const auto & variables, const 
 {
   const bool pass = std::ranges::all_of(clauses, [&solver, &variables](auto &clause) {
     return std::ranges::any_of(
-      clause, [&solver,&variables](literal_type literal) { return solver.get_variable_value(variables[literal.variable]) == literal.is_positive; });
+      clause, [&solver,&variables](literal_type<bool> literal) { return solver.get_variable_value(variables[literal.variable]) == literal.value; });
   });
   if (!pass) { abort(); }
 }
 
 template <class Solver, class Variable>
-solve_status solve_and_validate(Solver &solver, const std::vector<Variable> &variables, const std::vector<std::vector<literal_type>> &clauses, bool test_out_of_range = false)
+solve_status solve_and_validate(Solver &solver, const std::vector<Variable> &variables, const std::vector<std::vector<literal_type<bool>>> &clauses, bool test_out_of_range = false)
 {
   try {
     const solve_status stat = solver.solve();
@@ -104,9 +76,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
   cdcl_sat<domain_strategy<binary_domain>> cdcl_solver;
   const auto trivial_variables = create_variables(trivial_solver, num_vars);
   const auto cdcl_variables = create_variables(cdcl_solver, num_vars);
-  std::vector<std::vector<literal_type>> clauses;
+  std::vector<std::vector<literal_type<bool>>> clauses;
+  csp_generator<bool> generator({false, true}, test_out_of_range);
   while (true) {
-    const std::vector<literal_type> &literals = clauses.emplace_back(generate_literals(random_data, num_vars, test_out_of_range));
+    const std::vector<literal_type<bool>> &literals = clauses.emplace_back(generator.generate_literals(random_data, num_vars));
     if (literals.empty()) {
       clauses.pop_back();
       break;

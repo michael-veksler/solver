@@ -1,8 +1,8 @@
 #ifndef SAT_TYPES_HPP
 #define SAT_TYPES_HPP
 
-#include <cinttypes>
 #include <string>
+#include <concepts>
 
 namespace solver {
 
@@ -20,12 +20,13 @@ inline std::string to_string(solve_status status)
   return "invalid(" + std::to_string(static_cast<int8_t>(status)) + ")";
 }
 /**
- * @brief Literal types used for
+ * @brief Literal types used for parsing the input CNF file
  *
  */
+template <std::integral Domain>
 struct literal_type
 {
-  bool is_positive = false;
+  Domain value{};
   uint32_t variable = 1;
 };
 
