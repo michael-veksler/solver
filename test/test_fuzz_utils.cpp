@@ -31,11 +31,11 @@ IsBetweenMatcher<T> IsBetween(T begin, T end) {
 }
 
 template <typename T, typename LambdaFunc> requires std::is_invocable_r_v<bool, LambdaFunc, T>
-class LambdaMatcher  : public Catch::Matchers::MatcherBase<T>
+// Meed to suppress exception-escape due to some issue in either cppcheck or Catch2.
+class LambdaMatcher  : public Catch::Matchers::MatcherBase<T> // cppcheck-suppress (bugprone-exception-escape)
 {
 public:
-  // Meed to suppress exception-escape due to some issue in either cppcheck or Catch2.
-  explicit LambdaMatcher(LambdaFunc && lambda) noexcept // cppcheck-suppress (*exception-escape)
+  explicit LambdaMatcher(LambdaFunc && lambda) noexcept // cppcheck-suppress (bugprone-exception-escape)
     : m_lambda(std::move(lambda)) {}
   explicit LambdaMatcher(const LambdaFunc & lambda)
     : m_lambda(lambda) {}
