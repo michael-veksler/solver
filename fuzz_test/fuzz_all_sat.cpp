@@ -1,5 +1,4 @@
 #include "fuzz_utils.hpp"
-#include "solver/discrete_domain.hpp"
 #include "solver/sat_types.hpp"
 #include <algorithm>
 #include <bits/ranges_util.h>
