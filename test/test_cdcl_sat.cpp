@@ -1,15 +1,12 @@
 #include "solver/binary_domain.hpp"
 #include "solver/discrete_domain.hpp"
 #include <solver/cdcl_sat.hpp>
+#include <stdexcept>
 #include <test_utils.hpp>
 
-#include "fmt/core.h"
-#include <algorithm>
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
-#include <functional>
-#include <sstream>
 
 using namespace solver;
 using namespace solver::testing;
@@ -222,6 +219,17 @@ TEMPLATE_TEST_CASE("max attempts", "[cdcl_sat]", binary_domain, discrete_domain<
     all_literal_combinations<TestType> expected_unknown(backtracks_required - 1);
     REQUIRE(expected_unknown.solver.solve() == solve_status::UNKNOWN);
   }
+}
+
+TEMPLATE_TEST_CASE("invalid vars", "[cdcl_sat]", binary_domain, discrete_domain<uint8_t>)// NOLINT(cert-err58-cpp)
+{
+  cdcl_sat<domain_strategy<TestType>> solver;
+  solver.set_debug(true);
+  const auto zero_var = solver.add_var(TestType{0});
+  solver.add_clause().add_literal(zero_var, 1);
+  solver.add_clause().add_literal(zero_var+1, 1);
+
+  REQUIRE_THROWS_AS(solver.solve(), std::out_of_range);
 }
 
 // NOLINTNEXTLINE(cert-err58-cpp)
