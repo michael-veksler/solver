@@ -81,9 +81,23 @@ auto cdcl_sat<Strategy>::analyze_conflict(clause_handle conflicting_clause)
   return std::nullopt;
 }
 
+template<cdcl_sat_strategy Strategy>
+void cdcl_sat<Strategy>::validate_clauses() const
+{
+  for (const clause &tested : m_clauses) {
+    for (unsigned i = 0; i != tested.size(); ++i) {
+      const auto variable = tested.get_variable(i);
+      if(variable >= m_domains.size()) {
+        throw std::out_of_range(fmt::format("Variable index out of range for clause {}", tested));
+      }
+    }
+  }
+}
+
 template<cdcl_sat_strategy Strategy> solve_status cdcl_sat<Strategy>::solve()
 {
   const state_saver inside_solve_saver(m_inside_solve);
+  validate_clauses();
   m_inside_solve = true;
   if (!initial_propagate()) { return solve_status::UNSAT; }
   unsigned backtracks = 0;

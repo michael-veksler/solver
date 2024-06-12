@@ -3,18 +3,17 @@
 #include <algorithm>
 #include <bits/ranges_util.h>
 #include <cstdint>
-#include <numeric>
-#include <optional>
+#include <vector>
 #include <solver/trivial_sat.hpp>
 #include <solver/cdcl_sat.hpp>
-#include <span>
 #include <stdexcept>
 
 using namespace solver;
 using solver::fuzzing::random_stream;
 using solver::fuzzing::csp_generator;
 
-static void add_clause(auto &solver, const auto & variables, const std::vector<literal_type<bool>> & literals, bool test_out_of_range)
+template <std::integral Domain>
+static bool add_clause(auto &solver, const auto & variables, const std::vector<literal_type<Domain>> & literals, bool test_out_of_range)
 {
   auto &clause = solver.add_clause();
   for (const auto literal : literals) {
@@ -29,22 +28,29 @@ static void add_clause(auto &solver, const auto & variables, const std::vector<l
       while (const bool is_valid_var = std::ranges::find(variables, var) != variables.end()) {
         ++var;
       }
-      clause.add_literal(var, literal.value);
+      try {
+        clause.add_literal(var, literal.value);
+      } catch (const std::out_of_range &except) {
+        return false;
+      }
     }
   }
+  return true;
 }
 
 static void validate_solution(const auto &solver, const auto & variables, const auto &clauses)
 {
   const bool pass = std::ranges::all_of(clauses, [&solver, &variables](auto &clause) {
     return std::ranges::any_of(
-      clause, [&solver,&variables](literal_type<bool> literal) { return solver.get_variable_value(variables[literal.variable]) == literal.value; });
+      clause, [&solver,&variables](const auto & literal) { return solver.get_variable_value(variables[literal.variable]) == literal.value; });
   });
   if (!pass) { abort(); }
 }
 
-template <class Solver, class Variable>
-solve_status solve_and_validate(Solver &solver, const std::vector<Variable> &variables, const std::vector<std::vector<literal_type<bool>>> &clauses, bool test_out_of_range = false)
+template <class Solver, class VariableHandle, class Variable>
+solve_status solve_and_validate(Solver &solver, const std::vector<VariableHandle> &variables,
+                                const std::vector<std::vector<literal_type<Variable>>> &clauses,
+                                bool test_out_of_range = false)
 {
   try {
     const solve_status stat = solver.solve();
@@ -72,24 +78,29 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
   const auto num_vars = static_cast<uint16_t>(
     std::min<size_t>(random_data.get<uint16_t>().value_or(1), random_data.data_span.size() / VAR_RATIO) % (MAX_VARS) + 1);
   const bool test_out_of_range = random_data.get<uint8_t>().value_or(0) % 2 == 0;
+  using domain_type = binary_domain;
+  using value_type = domain_type::value_type;
   trivial_sat trivial_solver;
-  cdcl_sat<domain_strategy<binary_domain>> cdcl_solver;
+  cdcl_sat<domain_strategy<domain_type>> cdcl_solver;
   const auto trivial_variables = create_variables(trivial_solver, num_vars);
   const auto cdcl_variables = create_variables(cdcl_solver, num_vars);
-  std::vector<std::vector<literal_type<bool>>> clauses;
-  csp_generator<bool> generator({false, true}, test_out_of_range);
+  std::vector<std::vector<literal_type<value_type>>> clauses;
+  csp_generator<value_type> generator({false, true}, test_out_of_range);
   while (true) {
-    const std::vector<literal_type<bool>> &literals = clauses.emplace_back(generator.generate_literals(random_data, num_vars));
+    const std::vector<literal_type<value_type>> &literals = clauses.emplace_back(generator.generate_literals(random_data, num_vars));
     if (literals.empty()) {
       clauses.pop_back();
       break;
     }
-    add_clause(trivial_solver, trivial_variables, literals, test_out_of_range);
-    add_clause(cdcl_solver, cdcl_variables, literals, test_out_of_range);
+    const bool trivial_added = add_clause(trivial_solver, trivial_variables, literals, test_out_of_range);
+    const bool cdcl_added =   add_clause(cdcl_solver, cdcl_variables, literals, test_out_of_range);
+    if (trivial_added != cdcl_added) { abort(); }
   }
 
   const solve_status trivial_stat = solve_and_validate(trivial_solver, trivial_variables, clauses, test_out_of_range);
-  const solve_status cdcl_stat = solve_and_validate(trivial_solver, cdcl_variables, clauses, test_out_of_range);
-  if (cdcl_stat != trivial_stat) { abort(); }
+  const solve_status cdcl_stat = solve_and_validate(cdcl_solver, cdcl_variables, clauses, test_out_of_range);
+  if (cdcl_stat != trivial_stat) {
+    abort();
+  }
   return 0;
 }

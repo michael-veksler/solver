@@ -38,30 +38,38 @@ template <std::integral Domain>
 class csp_generator
 {
 public:
-  explicit csp_generator(std::pair<Domain, Domain> bounds, bool test_out_of_range) : m_min_val(bounds.first), m_max_val(bounds.second), m_test_out_of_range(test_out_of_range) {}
+  explicit csp_generator(std::pair<Domain, Domain> bounds, bool test_out_of_range)
+    : m_min_val(bounds.first), m_max_val(bounds.second), m_test_out_of_range(test_out_of_range) {}
   csp_generator() = default;
 
   std::optional<literal_type<Domain>>
   generate_literal(random_stream &random_data, unsigned num_vars)
   {
-    const bool invalid_var = m_test_out_of_range && random_data.get<uint8_t>().value_or(1) == 0;
-
     const std::optional<Domain> value = random_data.get<Domain>();
     if (!value) { return std::nullopt; }
+    const std::optional variable_index = generate_variable_index(random_data, num_vars);
+    if (!variable_index) {
+      return std::nullopt;
+    }
+    return literal_type<Domain>{ .value = *value, .variable = *variable_index};
+  }
+
+  std::optional<uint32_t>
+  generate_variable_index(random_stream &random_data, unsigned num_vars)
+  {
+    const bool invalid_var = m_test_out_of_range && random_data.get<uint8_t>().value_or(1) == 0;
+
+    std::optional<uint32_t> variable_index = random_data.get<uint32_t>();
+    if (!variable_index) { return std::nullopt; }
+
     if (invalid_var) {
-      while (true) {
-        const std::optional<uint16_t> variable_index = random_data.get<uint16_t>();
-        if (!variable_index) { return std::nullopt; }
-        if (*variable_index >= num_vars) {
-          return literal_type<Domain>{ .value = *value, .variable = *variable_index };
-        }
+      while (variable_index && *variable_index < num_vars) {
+        variable_index = random_data.get<uint16_t>();
       }
     } else {
-      const std::optional<uint16_t> variable_index = random_data.get<Domain>();
-      if (!variable_index) { return std::nullopt; }
-
-      return literal_type<Domain>{ .value = *value, .variable = *variable_index % num_vars};
+      *variable_index %= num_vars;
     }
+    return variable_index;
   }
 
   std::vector<literal_type<Domain>> generate_literals(random_stream &random_data, unsigned num_vars)

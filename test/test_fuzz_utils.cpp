@@ -160,6 +160,24 @@ TEST_CASE("generate_literals all zero bool", "[fuzz_utils]") // NOLINT(*cognitiv
   REQUIRE(max_size >= 5);
 }
 
+TEST_CASE("generate_variable_index loop invalid index", "[fuzz_utils]")
+{
+  csp_generator<bool> generator{{false, true}, true};
+
+  static constexpr unsigned num_vars = 5;
+  std::vector<uint8_t> zero_prefix_data;
+  static constexpr size_t prefix_size = 128;
+  zero_prefix_data.resize(prefix_size, 0);
+  static constexpr size_t max_size = 128 + prefix_size;
+  for (unsigned i=0; zero_prefix_data.size() < max_size; ++i) {
+    zero_prefix_data.push_back(uint8_t(i));
+  }
+  random_stream zero_prefix_stream(zero_prefix_data.data(), zero_prefix_data.size());
+  const auto variable_index = generator.generate_variable_index(zero_prefix_stream, num_vars);
+  REQUIRE(variable_index.has_value());
+  REQUIRE(variable_index.value_or(0) >= num_vars);
+}
+
 TEST_CASE("generate_literals all ones bool", "[fuzz_utils]") // NOLINT(*cognitive-complexity)
 {
   csp_generator<bool> generator;
@@ -191,7 +209,7 @@ TEST_CASE("generate_literals out_of_range variable bool", "[fuzz_utils]") // NOL
   std::vector<uint8_t> periodic_data;
   periodic_data.reserve(max_size);
   for (size_t i = 0; i < max_size; ++i) {
-    periodic_data.push_back(uint8_t(i));
+    periodic_data.push_back(uint8_t(i/2));
   }
 
 

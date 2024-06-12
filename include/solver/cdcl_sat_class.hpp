@@ -227,6 +227,8 @@ private:
     level_t level = 0;
   };
 
+  void validate_clauses() const;
+
   [[nodiscard]] implication get_var_implication(variable_handle var) const { return m_implications.at(var); }
 
   using conflict_analysis_algo = cdcl_sat_conflict_analysis_algo<Strategy>;

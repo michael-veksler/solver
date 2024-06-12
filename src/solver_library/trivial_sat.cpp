@@ -36,7 +36,6 @@ void trivial_sat::validate_clauses() const
         throw std::out_of_range(fmt::format("Variable index out of range for clause {}", tested));
       }
     }
-    if (has_conflict(tested)) { throw std::logic_error("Clause has conflict"); }
   }
 }
 
