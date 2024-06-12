@@ -48,11 +48,10 @@ public:
     const std::optional<Domain> value = random_data.get<Domain>();
     if (!value) { return std::nullopt; }
     const std::optional variable_index = generate_variable_index(random_data, num_vars);
-    if (variable_index) {
-      return literal_type<Domain>{ .value = *value, .variable = *variable_index};
-    } else {
+    if (!variable_index) {
       return std::nullopt;
     }
+    return literal_type<Domain>{ .value = *value, .variable = *variable_index};
   }
 
   std::optional<uint32_t>

@@ -13,7 +13,7 @@ using solver::fuzzing::random_stream;
 using solver::fuzzing::csp_generator;
 
 template <std::integral Domain>
-static void add_clause(auto &solver, const auto & variables, const std::vector<literal_type<Domain>> & literals, bool test_out_of_range)
+static bool add_clause(auto &solver, const auto & variables, const std::vector<literal_type<Domain>> & literals, bool test_out_of_range)
 {
   auto &clause = solver.add_clause();
   for (const auto literal : literals) {
@@ -28,9 +28,14 @@ static void add_clause(auto &solver, const auto & variables, const std::vector<l
       while (const bool is_valid_var = std::ranges::find(variables, var) != variables.end()) {
         ++var;
       }
-      clause.add_literal(var, literal.value);
+      try {
+        clause.add_literal(var, literal.value);
+      } catch (const std::out_of_range &except) {
+        return false;
+      }
     }
   }
+  return true;
 }
 
 static void validate_solution(const auto &solver, const auto & variables, const auto &clauses)
@@ -81,33 +86,20 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
   const auto cdcl_variables = create_variables(cdcl_solver, num_vars);
   std::vector<std::vector<literal_type<value_type>>> clauses;
   csp_generator<value_type> generator({false, true}, test_out_of_range);
-  bool cdcl_has_out_of_range = false;
-  bool trivial_has_out_of_range = false;
   while (true) {
     const std::vector<literal_type<value_type>> &literals = clauses.emplace_back(generator.generate_literals(random_data, num_vars));
     if (literals.empty()) {
       clauses.pop_back();
       break;
     }
-    try {
-      add_clause(trivial_solver, trivial_variables, literals, test_out_of_range);
-    } catch (const std::out_of_range &except) {
-      trivial_has_out_of_range = true;
-      if (!test_out_of_range) { abort(); }
-    }
-    try {
-      add_clause(cdcl_solver, cdcl_variables, literals, test_out_of_range);
-    } catch (const std::out_of_range &except) {
-      cdcl_has_out_of_range = true;
-      if (!test_out_of_range) { abort(); }
-    }
+    const bool trivial_added = add_clause(trivial_solver, trivial_variables, literals, test_out_of_range);
+    const bool cdcl_added =   add_clause(cdcl_solver, cdcl_variables, literals, test_out_of_range);
+    if (trivial_added != cdcl_added) { abort(); }
   }
-  if (trivial_has_out_of_range && cdcl_has_out_of_range) { return 0; }
 
   const solve_status trivial_stat = solve_and_validate(trivial_solver, trivial_variables, clauses, test_out_of_range);
   const solve_status cdcl_stat = solve_and_validate(cdcl_solver, cdcl_variables, clauses, test_out_of_range);
   if (cdcl_stat != trivial_stat) {
-    if (cdcl_has_out_of_range && trivial_stat == solve_status::UNKNOWN) { return 0; }
     abort();
   }
   return 0;
