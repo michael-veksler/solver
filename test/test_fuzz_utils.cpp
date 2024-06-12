@@ -191,7 +191,7 @@ TEST_CASE("generate_literals out_of_range variable bool", "[fuzz_utils]") // NOL
   std::vector<uint8_t> periodic_data;
   periodic_data.reserve(max_size);
   for (size_t i = 0; i < max_size; ++i) {
-    periodic_data.push_back(uint8_t(i));
+    periodic_data.push_back(uint8_t(i/2));
   }
 
 
