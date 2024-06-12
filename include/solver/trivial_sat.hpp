@@ -5,6 +5,7 @@
 #include "sat_types.hpp"
 #include "assert.hpp"
 #include <cinttypes>
+#include <limits>
 #include <solver/solver_library_export.hpp>
 #include <stdexcept>
 #include <vector>
@@ -75,6 +76,11 @@ public:
   void reserve(unsigned num_literals) { m_literals.reserve(num_literals); }
   void add_literal(variable_handle var_num, bool is_positive)
   {
+    static_assert(std::is_unsigned_v<variable_handle>);
+    if (var_num > static_cast<variable_handle>(std::numeric_limits<int>::max()))
+    {
+      throw std::out_of_range("Variable index out of range");
+    }
     m_literals.push_back(is_positive ? static_cast<int>(var_num) : -static_cast<int>(var_num));
   }
   [[nodiscard]] variable_handle get_variable(unsigned literal_num) const

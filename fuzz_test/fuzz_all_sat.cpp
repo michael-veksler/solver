@@ -43,7 +43,9 @@ static void validate_solution(const auto &solver, const auto & variables, const 
 }
 
 template <class Solver, class VariableHandle, class Variable>
-solve_status solve_and_validate(Solver &solver, const std::vector<VariableHandle> &variables, const std::vector<std::vector<literal_type<Variable>>> &clauses, bool test_out_of_range = false)
+solve_status solve_and_validate(Solver &solver, const std::vector<VariableHandle> &variables,
+                                const std::vector<std::vector<literal_type<Variable>>> &clauses,
+                                bool test_out_of_range = false)
 {
   try {
     const solve_status stat = solver.solve();
@@ -79,18 +81,34 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
   const auto cdcl_variables = create_variables(cdcl_solver, num_vars);
   std::vector<std::vector<literal_type<value_type>>> clauses;
   csp_generator<value_type> generator({false, true}, test_out_of_range);
+  bool cdcl_has_out_of_range = false;
+  bool trivial_has_out_of_range = false;
   while (true) {
     const std::vector<literal_type<value_type>> &literals = clauses.emplace_back(generator.generate_literals(random_data, num_vars));
     if (literals.empty()) {
       clauses.pop_back();
       break;
     }
-    add_clause(trivial_solver, trivial_variables, literals, test_out_of_range);
-    add_clause(cdcl_solver, cdcl_variables, literals, test_out_of_range);
+    try {
+      add_clause(trivial_solver, trivial_variables, literals, test_out_of_range);
+    } catch (const std::out_of_range &except) {
+      trivial_has_out_of_range = true;
+      if (!test_out_of_range) { abort(); }
+    }
+    try {
+      add_clause(cdcl_solver, cdcl_variables, literals, test_out_of_range);
+    } catch (const std::out_of_range &except) {
+      cdcl_has_out_of_range = true;
+      if (!test_out_of_range) { abort(); }
+    }
   }
+  if (trivial_has_out_of_range && cdcl_has_out_of_range) { return 0; }
 
   const solve_status trivial_stat = solve_and_validate(trivial_solver, trivial_variables, clauses, test_out_of_range);
   const solve_status cdcl_stat = solve_and_validate(cdcl_solver, cdcl_variables, clauses, test_out_of_range);
-  if (cdcl_stat != trivial_stat) { abort(); }
+  if (cdcl_stat != trivial_stat) {
+    if (cdcl_has_out_of_range && trivial_stat == solve_status::UNKNOWN) { return 0; }
+    abort();
+  }
   return 0;
 }
