@@ -38,7 +38,8 @@ template <std::integral Domain>
 class csp_generator
 {
 public:
-  explicit csp_generator(std::pair<Domain, Domain> bounds, bool test_out_of_range) : m_min_val(bounds.first), m_max_val(bounds.second), m_test_out_of_range(test_out_of_range) {}
+  explicit csp_generator(std::pair<Domain, Domain> bounds, bool test_out_of_range)
+    : m_min_val(bounds.first), m_max_val(bounds.second), m_test_out_of_range(test_out_of_range) {}
   csp_generator() = default;
 
   std::optional<literal_type<Domain>>
@@ -60,14 +61,13 @@ public:
     const bool invalid_var = m_test_out_of_range && random_data.get<uint8_t>().value_or(1) == 0;
 
     std::optional<uint32_t> variable_index = random_data.get<uint32_t>();
+    if (!variable_index) { return std::nullopt; }
+
     if (invalid_var) {
       while (variable_index && *variable_index < num_vars) {
-        if (!variable_index) { return std::nullopt; }
         variable_index = random_data.get<uint16_t>();
       }
     } else {
-      if (!variable_index) { return std::nullopt; }
-
       *variable_index %= num_vars;
     }
     return variable_index;
