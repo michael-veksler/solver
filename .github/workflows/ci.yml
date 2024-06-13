@@ -138,7 +138,7 @@ jobs:
           generator: ${{ matrix.generator }}
 
       - name: Project Name
-        uses: cardinalby/export-env-action@v2.2.0
+        uses: cardinalby/export-env-action@v2
         with:
           envFile: '.github/constants.env'
 
