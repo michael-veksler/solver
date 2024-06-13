@@ -78,7 +78,7 @@ jobs:
             generator: "Unix Makefiles"
             build_type: Debug
             gcov_executable: gcov-12
-            packaging_maintainer_mode: On
+            packaging_maintainer_mode: ON
             enable_ipo: Off
 
           # Windows msvc builds
@@ -86,15 +86,15 @@ jobs:
             compiler: msvc
             generator: "Visual Studio 17 2022"
             build_type: Debug
-            packaging_maintainer_mode: On
-            enable_ipo: On
+            packaging_maintainer_mode: ON
+            enable_ipo: ON
 
           - os: windows-2022
             compiler: msvc
             generator: "Visual Studio 17 2022"
             build_type: Release
-            packaging_maintainer_mode: On
-            enable_ipo: On
+            packaging_maintainer_mode: ON
+            enable_ipo: ON
 
           # The generated executables fail with the latest update to VSCMD_VER=17.8.1, used to work with VSCMD_VER: 17.7.6
           # - os: windows-2022
@@ -114,20 +114,20 @@ jobs:
             compiler: msvc
             generator: "Visual Studio 17 2022"
             build_type: Release
-            packaging_maintainer_mode: On
-            enable_ipo: On
-            build_shared: On
+            packaging_maintainer_mode: ON
+            enable_ipo: ON
+            build_shared: ON
 
 
     steps:
       - name: Check for llvm version mismatches
         if: ${{ contains(matrix.compiler, 'llvm') && !contains(matrix.compiler, env.CLANG_TIDY_VERSION) }}
-        uses: actions/github-script@v3
+        uses: actions/github-script@v4
         with:
           script: |
             core.setFailed('There is a mismatch between configured llvm compiler and clang-tidy version chosen')
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Cache
         uses: ./.github/actions/setup_cache
@@ -144,7 +144,7 @@ jobs:
 
 
       - name: Setup Cpp
-        uses: aminya/setup-cpp@v1
+        uses: aminya/setup-cpp@v0.37.0
         with:
           compiler: ${{ matrix.compiler }}
           vcvarsall: ${{ contains(matrix.os, 'windows' )}}
@@ -187,10 +187,9 @@ jobs:
 
       - name: Archive production artifacts
         if: ${{ always() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: artifacts-${{matrix.os}}-${{matrix.compiler}}-${{matrix.build_type}}-${{matrix.packaging_maintainer_mode}}
-
+          name: artifacts-${{matrix.os}}-${{matrix.compiler}}-${{matrix.build_type}}${{matrix.packaging_maintainer_mode == 'ON' && '-package_maintainer' || ''}}${{matrix.enable_ipo == 'ON' && '-IPO' || ''}}${{matrix.build_shared == 'ON' && '-shared' || '' }}${{matrix.package_generator != '' && '-' || ''}}${{matrix.package_generator}}
           path: |
             build/test/*.xml
             build/coverage.xml
@@ -203,7 +202,7 @@ jobs:
           cpack -C ${{matrix.build_type}} -G ${{matrix.package_generator}}
 
       - name: Publish Tagged Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         if: ${{ startsWith(github.ref, 'refs/tags/') && matrix.package_generator != '' }}
         with:
           files: |
@@ -212,7 +211,7 @@ jobs:
 
       - name: Publish to codecov
         if: matrix.build_type == 'Debug'
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: ${{ runner.os }}
