@@ -31,7 +31,7 @@ jobs:
         os:
           - ubuntu-22.04
           - macos-12
-          - windows-2022
+          - windows-2019
         compiler:
           # you can specify the version after `-` like "llvm-15.0.2".
           - llvm-15.0.2
@@ -185,11 +185,21 @@ jobs:
         run: |
           OpenCppCoverage.exe --export_type cobertura:coverage.xml --cover_children -- ctest -C ${{matrix.build_type}}
 
-      - name: Archive production artifacts
-        if: ${{ always() }}
+      - name: Archive production artifacts with package_generator
+        if: matrix.package_generator != ''
         uses: actions/upload-artifact@v4
         with:
           name: artifacts-${{matrix.os}}-${{matrix.compiler}}-${{matrix.build_type}}-${{matrix.packaging_maintainer_mode}}-${{matrix.package_generator}}
+
+          path: |
+            build/test/*.xml
+            build/coverage.xml
+          retention-days: 2
+      - name: Archive production artifacts without package_generator
+        if: matrix.package_generator == ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-${{matrix.os}}-${{matrix.compiler}}-${{matrix.build_type}}-${{matrix.packaging_maintainer_mode}}
 
           path: |
             build/test/*.xml
