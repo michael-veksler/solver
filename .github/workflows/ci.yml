@@ -189,7 +189,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: artifacts-${{matrix.os}}-${{matrix.compiler}}-${{matrix.build_type}}-${{matrix.packaging_maintainer_mode == 'ON' && '-PACKAGE_MAINTAINER' || ''}}${{matrix.enable_ipo == 'ON' && '-IPO' || ''}}${{matrix.build_shared == 'ON' && '-shared' || '' }}${{matrix.package_generator != '' && '-' || ''}}${{matrix.package_generator}}
+          name: artifacts-${{matrix.os}}-${{matrix.compiler}}-${{matrix.build_type}}${{matrix.packaging_maintainer_mode == 'ON' && '-package_maintainer' || ''}}${{matrix.enable_ipo == 'ON' && '-IPO' || ''}}${{matrix.build_shared == 'ON' && '-shared' || '' }}${{matrix.package_generator != '' && '-' || ''}}${{matrix.package_generator}}
           path: |
             build/test/*.xml
             build/coverage.xml
