@@ -1,13 +1,12 @@
 #ifndef CDCL_SAT_CLAUSE_CLASS_HPP
 #define CDCL_SAT_CLAUSE_CLASS_HPP
 
+#include "solver/binary_literal_type.hpp"
 #include "solver/cdcl_sat_class.hpp"
-#include "solver/domain_utils.hpp"
 #include <solver/solver_library_export.hpp>
-#include <stdexcept>
 
 namespace solver {
-template<cdcl_sat_strategy Strategy> class cdcl_sat_clause
+template<cdcl_sat_strategy Strategy, sat_literal_type LiteralType> class cdcl_sat_clause
 {
 public:
   using literal_index_t = typename Strategy::literal_index_t;
@@ -15,6 +14,7 @@ public:
   using clause_handle = typename cdcl_sat::clause_handle;
   using variable_handle = typename cdcl_sat::variable_handle;
   using domain_type = typename cdcl_sat::domain_type;
+  using this_literal_type = LiteralType;
   struct propagation_context
   {
     cdcl_sat &solver;
@@ -30,11 +30,7 @@ public:
   void reserve(literal_index_t num_literals) { m_literals.reserve(num_literals); }
   void add_literal(variable_handle var_num, bool is_positive)
   {
-    if (var_num > static_cast<variable_handle>(std::numeric_limits<int>::max()))
-    {
-      throw std::out_of_range("Variable number is too large");
-    }
-    m_literals.push_back(is_positive ? static_cast<int>(var_num) : -static_cast<int>(var_num));
+    m_literals.push_back(binary_literal_type{var_num, is_positive});
   }
 
   [[nodiscard]] solve_status initial_propagate(propagation_context propagation);
@@ -43,13 +39,12 @@ public:
   [[nodiscard]] variable_handle get_variable(literal_index_t literal_num) const
   {
     assert(literal_num < m_literals.size());// NOLINT
-    int literal = m_literals[literal_num];
-    return literal > 0 ? static_cast<variable_handle>(literal) : static_cast<variable_handle>(-literal);
+    return m_literals[literal_num].get_variable();
   }
-  [[nodiscard]] bool is_positive_literal(literal_index_t literal_num) const
+  [[nodiscard]] typename LiteralType::value_type get_literal_value(literal_index_t literal_num) const
   {
     assert(literal_num < m_literals.size());// NOLINT
-    return m_literals[literal_num] > 0;
+    return m_literals[literal_num].get_value();
   }
 
   [[nodiscard]] literal_index_t size() const
@@ -58,7 +53,7 @@ public:
     return static_cast<literal_index_t>(m_literals.size());
   }
 
-  friend std::ostream &operator<<(std::ostream &out, const cdcl_sat_clause<Strategy> &clause)
+  friend std::ostream &operator<<(std::ostream &out, const cdcl_sat_clause<Strategy, binary_literal_type> &clause)
   {
     out << '{';
     for (unsigned i = 0; i != clause.m_literals.size(); ++i) {
@@ -92,12 +87,12 @@ private:
    *
    * Variable 0 is unused, to make it easier to distinguish positive and negative literals.
    */
-  std::vector<int> m_literals;
+  std::vector<this_literal_type> m_literals;
   std::array<literal_index_t, 2> m_watched_literals = { 0, 0 };
 };
 
 } // namespace solver
 
-template<solver::cdcl_sat_strategy Strategy> struct fmt::formatter<solver::cdcl_sat_clause<Strategy>> : fmt::ostream_formatter {};
+template<solver::cdcl_sat_strategy Strategy> struct fmt::formatter<solver::cdcl_sat_clause<Strategy, solver::binary_literal_type>> : fmt::ostream_formatter {};
 
 #endif

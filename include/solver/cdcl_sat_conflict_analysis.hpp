@@ -1,9 +1,9 @@
 #ifndef CDCL_SAT_CONFLICT_ANALYSIS_HPP
 #define CDCL_SAT_CONFLICT_ANALYSIS_HPP
 
+#include "solver/binary_literal_type.hpp"
 #include "solver/cdcl_sat_class.hpp"
 #include "solver/cdcl_sat_clause_class.hpp"
-#include "solver/domain_utils.hpp"
 #include <boost/numeric/conversion/cast.hpp>
 
 #include <map>
@@ -22,7 +22,7 @@ template<cdcl_sat_strategy Strategy> struct cdcl_sat_conflict_analysis_algo
   using variable_handle = typename cdcl_sat<Strategy>::variable_handle;
   using cdcl_sat = solver::cdcl_sat<Strategy>;
   using level_t = typename solver::cdcl_sat<Strategy>::level_t;
-  using clause = cdcl_sat_clause<Strategy>;
+  using clause = cdcl_sat_clause<Strategy, binary_literal_type>;
   /**
    * @brief Construct a new conflict analysis algo object
    *
