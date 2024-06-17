@@ -1,8 +1,10 @@
 #ifndef CDCL_SAT_CLASS_HPP
 #define CDCL_SAT_CLASS_HPP
 
+#include "solver/binary_literal_type.hpp"
 #include "solver/domain_utils.hpp"
 #include "solver/sat_types.hpp"
+#include <concepts>
 #include <solver/solver_library_export.hpp>
 
 #include <array>
@@ -22,6 +24,16 @@ concept cdcl_sat_strategy = requires(T value) {
                               requires std::is_integral_v<typename T::literal_index_t>;
                             };
 
+
+template <typename T>
+concept sat_literal_type = requires(T literal) {
+  { literal.get_value() } -> std::same_as<typename T::value_type>;
+  { literal.get_variable() } -> std::same_as<typename T::variable_index_type>;
+  { T(literal.get_variable(), literal.get_value()) };
+  { literal == literal } -> std::convertible_to<bool>;
+  { literal != literal } -> std::convertible_to<bool>;
+};
+
 template<typename DomainType> struct domain_strategy
 {
   using domain_type = DomainType;
@@ -29,7 +41,7 @@ template<typename DomainType> struct domain_strategy
 };
 
 
-template<cdcl_sat_strategy Strategy> SOLVER_LIBRARY_EXPORT class cdcl_sat_clause;
+template<cdcl_sat_strategy Strategy, sat_literal_type LiteralType> SOLVER_LIBRARY_EXPORT class cdcl_sat_clause;
 template<cdcl_sat_strategy Strategy> struct cdcl_sat_conflict_analysis_algo;
 
 /**
@@ -42,7 +54,7 @@ private:
   static constexpr uint64_t default_max_backtracks = static_cast<uint64_t>(1) << 32U;
 
 public:
-  using clause = cdcl_sat_clause<Strategy>;
+  using clause = cdcl_sat_clause<Strategy, binary_literal_type>;
   using clause_handle = uint32_t;
   using literal_index_t = typename Strategy::literal_index_t;
   using watch_container = std::vector<clause_handle>;
@@ -164,7 +176,7 @@ public:
    * @param index The index of the literal to query.
    * @return The literal at the given index in the clause.
    */
-  [[nodiscard]] variable_handle get_clause_variable(clause_handle handle, literal_index_t index) const
+  [[nodiscard]] variable_handle get_literal_variable(clause_handle handle, literal_index_t index) const
   {
     return m_clauses[handle].get_variable(index);
   }
@@ -175,9 +187,9 @@ public:
    * @param index The index of the literal to query.
    * @return The value of the literal at the given index in the clause.
    */
-  [[nodiscard]] bool is_clause_positive_literal(clause_handle handle, literal_index_t index) const
+  [[nodiscard]] typename domain_type::value_type get_literal_value(clause_handle handle, literal_index_t index) const
   {
-    return m_clauses[handle].is_positive_literal(index);
+    return m_clauses[handle].get_literal_value(index);
   }
 
   /**

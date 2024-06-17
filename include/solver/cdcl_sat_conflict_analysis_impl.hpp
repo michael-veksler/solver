@@ -60,11 +60,11 @@ cdcl_sat_conflict_analysis_algo<Strategy>::cdcl_sat_conflict_analysis_algo(const
 {
   solver.log_clause(conflicting_clause, "initiating conflict analysis with conflicting_clause");
   for (literal_index_t literal_num = 0; literal_num != solver.get_clause_size(conflicting_clause); ++literal_num) {
-    const variable_handle var = solver.get_clause_variable(conflicting_clause, literal_num);
+    const variable_handle var = solver.get_literal_variable(conflicting_clause, literal_num);
     const variable_handle implication_depth = solver.get_var_implication_depth(var);
     if (implication_depth == 0) { continue; }
     [[maybe_unused]] const auto [literal_iter, was_inserted] =
-      conflict_literals.emplace(var, solver.is_clause_positive_literal(conflicting_clause, literal_num));
+      conflict_literals.emplace(var, solver.get_literal_value(conflicting_clause, literal_num));
     assert(was_inserted);// NOLINT
     implication_depth_to_var.emplace(implication_depth, var);
   }
@@ -76,8 +76,8 @@ template<cdcl_sat_strategy Strategy> void cdcl_sat_conflict_analysis_algo<Strate
   const clause_handle prev_clause = solver.get_var_implication_clause(pivot_var);
   solver.log_clause(prev_clause, "Resolving with");
   for (literal_index_t literal_num = 0; literal_num != solver.get_clause_size(prev_clause); ++literal_num) {
-    const bool is_positive = solver.is_clause_positive_literal(prev_clause, literal_num);
-    const variable_handle var = solver.get_clause_variable(prev_clause, literal_num);
+    const bool is_positive = solver.get_literal_value(prev_clause, literal_num);
+    const variable_handle var = solver.get_literal_variable(prev_clause, literal_num);
     const variable_handle implication_depth = solver.get_var_implication_depth(var);
     if (implication_depth == 0) { continue; }
     if (var == pivot_var) {
