@@ -30,12 +30,13 @@ solve_status cdcl_sat_clause<Strategy,LiteralType>::literal_state(const cdcl_sat
   const variable_handle var = get_variable(literal_num);
   const auto value = get_literal_value(literal_num);
   const domain_type &domain = solver.get_current_domain(var);
-  if (domain.is_singleton() && get_value(domain) == value ) {
-    return solve_status::SAT;
-  } else if (domain.is_singleton() && get_value(domain) != value) {
-    return solve_status::UNSAT;
-  } else {
+  if (!domain.is_singleton()) {
     return solve_status::UNKNOWN;
+  }
+  if (get_value(domain) == typename Strategy::domain_type::value_type(value)) {
+    return solve_status::SAT;
+  } else {
+    return solve_status::UNSAT;
   }
 }
 

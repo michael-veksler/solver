@@ -9,7 +9,7 @@
 namespace solver {
 class binary_literal_type {
 public:
-    using value_type = uint8_t;
+    using value_type = bool;
     using variable_index_type = uint32_t;
     binary_literal_type() : m_value(1) {}
     binary_literal_type(variable_index_type variable_index, value_type literal_value) {
@@ -17,13 +17,13 @@ public:
             throw std::out_of_range("Value out of bounds");
         }
         m_value = static_cast<int32_t>(variable_index);
-        if (literal_value == 0) {
+        if (!literal_value) {
             m_value = -m_value;
         }
     }
     [[nodiscard]] value_type get_value() const {
         assert(m_value != 0 && "Can't get variable of 0");
-        return m_value > 0 ? 1 : 0;
+        return m_value > 0;
     }
     [[nodiscard]] variable_index_type get_variable() const {
         assert(m_value != std::numeric_limits<int32_t>::min() && "Can't negate INT32_MIN");
