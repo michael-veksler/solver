@@ -32,7 +32,7 @@ solve_status cdcl_sat_clause<Strategy,LiteralType>::literal_state(const cdcl_sat
   const domain_type &domain = solver.get_current_domain(var);
   if (domain.is_singleton() && get_value(domain) == value ) {
     return solve_status::SAT;
-  } else if (domain.is_singleton() && get_value(domain) == value) {
+  } else if (domain.is_singleton() && get_value(domain) != value) {
     return solve_status::UNSAT;
   } else {
     return solve_status::UNKNOWN;
