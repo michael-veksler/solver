@@ -14,6 +14,7 @@ public:
   using clause_handle = typename cdcl_sat::clause_handle;
   using variable_handle = typename cdcl_sat::variable_handle;
   using domain_type = typename cdcl_sat::domain_type;
+  using value_type = typename domain_type::value_type;
   using this_literal_type = LiteralType;
   struct propagation_context
   {

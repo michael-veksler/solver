@@ -28,11 +28,7 @@ public:
     [[nodiscard]] variable_index_type get_variable() const {
         assert(m_value != std::numeric_limits<int32_t>::min() && "Can't negate INT32_MIN");
         assert(m_value != 0 && "Can't get variable of 0");
-        if (m_value < 0) {
-            return static_cast<variable_index_type>(-m_value);
-        } else {
-            return static_cast<variable_index_type>(m_value);
-        }
+        return static_cast<variable_index_type>(m_value < 0 ? -m_value : m_value);
     }
     friend auto operator<=>(const binary_literal_type&, const binary_literal_type&) = default;
     // an ostream operator that prints m_value

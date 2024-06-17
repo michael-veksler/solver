@@ -33,11 +33,7 @@ solve_status cdcl_sat_clause<Strategy,LiteralType>::literal_state(const cdcl_sat
   if (!domain.is_singleton()) {
     return solve_status::UNKNOWN;
   }
-  if (get_value(domain) == typename Strategy::domain_type::value_type(value)) {
-    return solve_status::SAT;
-  } else {
-    return solve_status::UNSAT;
-  }
+  return get_value(domain) == value_type(value) ? solve_status::SAT : solve_status::UNSAT;
 }
 
 template<cdcl_sat_strategy Strategy, sat_literal_type LiteralType>
