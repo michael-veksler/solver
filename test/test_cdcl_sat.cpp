@@ -252,6 +252,7 @@ TEST_CASE("solve_status::to_string", "[cdcl_sat]")// NOLINT(cert-err58-cpp)
   REQUIRE(to_string(static_cast<solve_status>(5)) == "invalid(5)");
 }
 
+// NOLINTNEXTLINE(*-function-cognitive-complexity)
 TEST_CASE("out_of_range literal", "[cdcl_sat]")
 {
   using solver_type = cdcl_sat<domain_strategy<binary_domain>> ;
@@ -266,7 +267,7 @@ TEST_CASE("out_of_range literal", "[cdcl_sat]")
     }
   }();
   using this_literal_type = std::remove_cvref_t<typename solver_type::clause::this_literal_type>;
-  auto add_big_literal = [&](variable_handle var_num, value_type value) {
+  auto add_big_literal = [&solver](variable_handle var_num, value_type value) {
     solver.add_clause().add_literal(var_num, value);
   };
   if constexpr (std::is_same_v<this_literal_type, binary_literal_type>) {
