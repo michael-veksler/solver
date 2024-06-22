@@ -54,14 +54,14 @@ private:
   static constexpr uint64_t default_max_backtracks = static_cast<uint64_t>(1) << 32U;
 
 public:
-  using clause = cdcl_sat_clause<Strategy, binary_literal_type>;
   using clause_handle = uint32_t;
   using literal_index_t = typename Strategy::literal_index_t;
   using watch_container = std::vector<clause_handle>;
-  friend clause;
   using variable_handle = uint32_t;
   using level_t = variable_handle;
   using domain_type = typename Strategy::domain_type;
+  using clause = cdcl_sat_clause<Strategy, binary_literal_type>;
+  friend clause;
   SOLVER_LIBRARY_EXPORT explicit cdcl_sat(uint64_t max_backtracks = default_max_backtracks);
   void set_debug(bool is_debug) { m_debug = is_debug; }
   [[nodiscard]] bool get_debug() const { return m_debug; }
