@@ -1,4 +1,5 @@
 #include "solver/binary_domain.hpp"
+#include "solver/cdcl_sat_class.hpp"
 #include "solver/discrete_domain.hpp"
 #include <solver/cdcl_sat.hpp>
 #include <stdexcept>
@@ -251,10 +252,13 @@ TEST_CASE("solve_status::to_string", "[cdcl_sat]")// NOLINT(cert-err58-cpp)
   REQUIRE(to_string(static_cast<solve_status>(5)) == "invalid(5)");
 }
 
+// NOLINTNEXTLINE(*-function-cognitive-complexity)
 TEST_CASE("out_of_range literal", "[cdcl_sat]")
 {
-  cdcl_sat<domain_strategy<binary_domain>> solver;
-  using variable_handle = typename decltype(solver)::variable_handle;
+  using solver_type = cdcl_sat<domain_strategy<binary_domain>> ;
+  solver_type solver;
+  using variable_handle = typename solver_type::variable_handle;
+  using value_type = typename solver_type::domain_type::value_type;
   auto max_signed = []{
     if constexpr (std::is_same_v<variable_handle, uint32_t>) {
       return static_cast<uint32_t>(std::numeric_limits<int32_t>::max());
@@ -262,7 +266,16 @@ TEST_CASE("out_of_range literal", "[cdcl_sat]")
       return static_cast<uint32_t>(std::numeric_limits<uint16_t>::max());
     }
   }();
-  REQUIRE_THROWS_AS(solver.add_clause().add_literal(max_signed+1, true), std::out_of_range);
-  REQUIRE_THROWS_AS(solver.add_clause().add_literal(static_cast<variable_handle>(-1LL), true), std::out_of_range);
-
+  using this_literal_type = std::remove_cvref_t<typename solver_type::clause::this_literal_type>;
+  auto add_big_literal = [&solver](variable_handle var_num, value_type value) {
+    solver.add_clause().add_literal(var_num, value);
+  };
+  if constexpr (std::is_same_v<this_literal_type, binary_literal_type>) {
+    REQUIRE_THROWS_AS(add_big_literal(max_signed+1, true), std::out_of_range);
+    REQUIRE_THROWS_AS(add_big_literal(static_cast<variable_handle>(-1LL), true), std::out_of_range);
+  } else {
+    add_big_literal(max_signed+1, true);
+    add_big_literal(static_cast<variable_handle>(-1LL), true);
+    REQUIRE_THROWS_AS(solver.solve(), std::out_of_range);
+  }
 }

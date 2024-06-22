@@ -1,7 +1,8 @@
 #ifndef CDCL_SAT_CLAUSE_CLASS_HPP
 #define CDCL_SAT_CLAUSE_CLASS_HPP
 
-#include "solver/binary_literal_type.hpp"
+
+
 #include "solver/cdcl_sat_class.hpp"
 #include <solver/solver_library_export.hpp>
 
@@ -29,9 +30,9 @@ public:
   cdcl_sat_clause &operator=(const cdcl_sat_clause &&) = delete;
   ~cdcl_sat_clause() = default;
   void reserve(literal_index_t num_literals) { m_literals.reserve(num_literals); }
-  void add_literal(variable_handle var_num, bool is_positive)
+  void add_literal(variable_handle var_num, typename this_literal_type::value_type value)
   {
-    m_literals.push_back(binary_literal_type{var_num, is_positive});
+    m_literals.push_back(this_literal_type{var_num, value});
   }
 
   [[nodiscard]] solve_status initial_propagate(propagation_context propagation);
@@ -54,7 +55,7 @@ public:
     return static_cast<literal_index_t>(m_literals.size());
   }
 
-  friend std::ostream &operator<<(std::ostream &out, const cdcl_sat_clause<Strategy, binary_literal_type> &clause)
+  friend std::ostream &operator<<(std::ostream &out, const cdcl_sat_clause<Strategy, this_literal_type> &clause)
   {
     out << '{';
     for (unsigned i = 0; i != clause.m_literals.size(); ++i) {
@@ -94,6 +95,6 @@ private:
 
 } // namespace solver
 
-template<solver::cdcl_sat_strategy Strategy> struct fmt::formatter<solver::cdcl_sat_clause<Strategy, solver::binary_literal_type>> : fmt::ostream_formatter {};
+template<solver::cdcl_sat_strategy Strategy, solver::sat_literal_type LiteralType> struct fmt::formatter<solver::cdcl_sat_clause<Strategy, LiteralType>> : fmt::ostream_formatter {};
 
 #endif

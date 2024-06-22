@@ -1,7 +1,6 @@
 #ifndef CDCL_SAT_CLAUSE_IMPL_HPP
 #define CDCL_SAT_CLAUSE_IMPL_HPP
 
-#include "solver/binary_literal_type.hpp"
 #include "solver/cdcl_sat_class.hpp"
 #include "solver/cdcl_sat_clause_class.hpp"
 #include "solver/domain_utils.hpp"
@@ -39,8 +38,8 @@ solve_status cdcl_sat_clause<Strategy,LiteralType>::literal_state(const cdcl_sat
 template<cdcl_sat_strategy Strategy, sat_literal_type LiteralType>
 bool cdcl_sat_clause<Strategy, LiteralType>::remove_duplicate_variables()
 {
-  std::map<uint32_t, binary_literal_type> encountered_literals;
-  std::vector<binary_literal_type> replacement_literals;
+  std::map<uint32_t, this_literal_type> encountered_literals;
+  std::vector<this_literal_type> replacement_literals;
   for (auto iter = m_literals.begin(); iter != m_literals.end(); ++iter) {
     auto [encountered_iter, inserted] = encountered_literals.try_emplace(iter->get_variable(), *iter);
     if (inserted) {

@@ -1,5 +1,5 @@
-#ifndef binary_literal_type_hpp
-#define binary_literal_type_hpp
+#ifndef BINARY_LITERAL_TYPE_HPP
+#define BINARY_LITERAL_TYPE_HPP
 
 #include <cassert>
 #include <cstdint>
@@ -40,4 +40,4 @@ private:
 };
 } // namespace solver
 
-#endif // binary_literal_type_hpp
+#endif // BINARY_LITERAL_TYPE_HPP
