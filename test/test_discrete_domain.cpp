@@ -228,15 +228,12 @@ TEST_CASE("Domain size", "[int8_domain]")
   domain.clear();
   REQUIRE(domain.size() == 0);
   unsigned expected_size = 0;
-  const auto all_values = std::views::iota(unsigned(uint8_domain::MIN_VALUE), unsigned(uint8_domain::MAX_VALUE)+1) ;
-  const auto is_even = [](auto val) { return val % 2 == 0; };
-  for (unsigned even: all_values | std::views::filter(is_even)) {
+  for (unsigned even = 0; even <= uint8_domain::MAX_VALUE ; even += 2) {
     domain.insert(static_cast<uint8_t>(even));
     ++expected_size;
     REQUIRE(domain.size() == expected_size);
   }
-  const auto is_odd = [](auto val) { return val % 2 == 1; };
-  for (unsigned odd: all_values | std::views::filter(is_odd)) {
+  for (unsigned odd = 1; odd <= uint8_domain::MAX_VALUE ; odd += 2) {
     domain.insert(static_cast<uint8_t>(odd));
     ++expected_size;
     REQUIRE(domain.size() == expected_size);
