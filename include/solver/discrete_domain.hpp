@@ -7,13 +7,8 @@
 #include <solver/solver_library_export.hpp>
 
 #include <cassert>
-#include <cinttypes>
 #include <concepts>
-#include <iterator>
 #include <limits>
-#include <string>
-#include <type_traits>
-#include <vector>
 
 
 namespace solver {
@@ -26,6 +21,7 @@ private:
 
 public:
   using value_type = ValueType;
+  using size_type = size_t;
   static constexpr ValueType MIN_VALUE = std::numeric_limits<ValueType>::min();
 
   /// The value is smaller than max() because are bugs in isl when it deals with max()
@@ -52,6 +48,7 @@ public:
   [[nodiscard]] constexpr bool is_universal() const { return boost::icl::contains(m_set, get_universal_interval()); }
   [[nodiscard]] constexpr bool empty() const { return m_set.empty(); }
   [[nodiscard]] constexpr bool is_singleton() const { return !is_universal() && m_set.size() == 1; }
+  [[nodiscard]] constexpr size_type size() const { return m_set.size(); }
   [[nodiscard]] iterator begin() const { return elements_begin(m_set); }
   [[nodiscard]] iterator end() const { return elements_end(m_set); }
   constexpr void clear() { m_set.clear(); }

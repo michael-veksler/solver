@@ -12,67 +12,30 @@
 namespace solver {
 
 template<typename T>
-concept domain_class_concept = requires(T a, T b, typename T::value_type val)// NOLINT(readability-identifier-length)
+concept domain_class_concept = requires(T a, const T b, typename T::value_type val)// NOLINT(readability-identifier-length)
 {
   typename T::value_type;
-  {
-    a.is_universal()
-    } -> std::same_as<bool>;
-  {
-    a.empty()
-    } -> std::same_as<bool>;
-  {
-    a.is_singleton()
-    } -> std::same_as<bool>;
-  {
-    a.begin()
-    } -> std::same_as<typename T::iterator>;
-  {
-    *a.begin()
-    } -> std::same_as<typename T::value_type>;
-  {
-    a.end()
-    } -> std::same_as<typename T::iterator>;
-  {
-    a.clear()
-  };
-  {
-    a.erase(val)
-  };
-  {
-    a.insert(val)
-  };
-  {
-    a.contains(val)
-    } -> std::same_as<bool>;
-  {
-    min(a)
-    } -> std::same_as<typename T::value_type>;
-  {
-    max(a)
-    } -> std::same_as<typename T::value_type>;
-  {
-    a == b
-    } -> std::same_as<bool>;
-  {
-    T::MIN_VALUE
-    } -> std::same_as<const typename T::value_type &>;
-  {
-    T::MAX_VALUE
-    } -> std::same_as<const typename T::value_type &>;
+  { b.is_universal() } -> std::same_as<bool>;
+  { b.empty() } -> std::same_as<bool>;
+  { b.is_singleton() } -> std::same_as<bool>;
+  { b.begin() } -> std::same_as<typename T::iterator>;
+  { *b.begin() } -> std::same_as<typename T::value_type>;
+  { b.end() } -> std::same_as<typename T::iterator>;
+  { a.clear() };
+  { a.erase(val) };
+  { a.insert(val) };
+  { b.contains(val) } -> std::same_as<bool>;
+  { min(b) } -> std::same_as<typename T::value_type>;
+  { max(b) } -> std::same_as<typename T::value_type>;
+  { b.size() } -> std::same_as<typename T::size_type>;
+  { a == b } -> std::same_as<bool>;
+  { T::MIN_VALUE } -> std::same_as<const typename T::value_type &>;
+  { T::MAX_VALUE} -> std::same_as<const typename T::value_type &>;
   requires T::MIN_VALUE < T::MAX_VALUE;
-  {
-    a = b
-    } -> std::same_as<T &>;
-  {
-    a = val
-    } -> std::same_as<T &>;
-  {
-    T(a)
-    } -> std::same_as<T>;
-  {
-    T(val)
-    } -> std::same_as<T>;
+  { a = b } -> std::same_as<T &>;
+  { a = val } -> std::same_as<T &>;
+  { T(b) } -> std::same_as<T>;
+  { T(val) } -> std::same_as<T>;
 };
 
 

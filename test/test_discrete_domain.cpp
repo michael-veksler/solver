@@ -50,6 +50,7 @@ static void
 // NOLINTNEXTLINE(readability-function-cognitive-complexity,cert-err58-cpp)
 TEST_CASE("Universal domain", "[int8_domain]")
 {
+  REQUIRE(uint8_domain().size() == uint8_domain::MAX_VALUE - uint8_domain::MIN_VALUE + 1);
   REQUIRE(uint8_domain().is_universal());
   REQUIRE(!uint8_domain().is_singleton());
   REQUIRE(!uint8_domain().empty());
@@ -62,6 +63,7 @@ TEST_CASE("Universal domain", "[int8_domain]")
 
 TEST_CASE("Empty domain", "[int8_domain]")
 {
+  REQUIRE(empty.size() == 0);
   REQUIRE(!empty.is_universal());
   REQUIRE(!empty.is_singleton());
   REQUIRE(empty.empty());
@@ -72,6 +74,7 @@ TEST_CASE("Empty domain", "[int8_domain]")
 
 TEST_CASE("Zero domain", "[int8_domain]")
 {
+  REQUIRE(zero.size() == 1);
   REQUIRE(!zero.is_universal());
   REQUIRE(zero.is_singleton());
   REQUIRE(!zero.empty());
@@ -81,6 +84,7 @@ TEST_CASE("Zero domain", "[int8_domain]")
 
 TEST_CASE("One domain", "[int8_domain]")
 {
+  REQUIRE(one.size() == 1);
   REQUIRE(!one.is_universal());
   REQUIRE(one.is_singleton());
   REQUIRE(!one.empty());
@@ -91,6 +95,7 @@ TEST_CASE("One domain", "[int8_domain]")
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
 TEST_CASE("Biggest domain", "[int8_domain]")
 {
+  REQUIRE(biggest.size() == 1);
   REQUIRE(!biggest.is_universal());
   REQUIRE(biggest.is_singleton());
   REQUIRE(!biggest.empty());
@@ -215,4 +220,25 @@ TEST_CASE("fmt::format", "[int8_domain]")
   REQUIRE(fmt::format("{}", universal) == "{*}");
   REQUIRE(fmt::format("{}", uint8_domain{ 0, 254 }) == "{0, 254}");
   REQUIRE(fmt::format("{}", uint8_domain{ 2, 1, 254 }) == "{1, 2, 254}");
+}
+
+TEST_CASE("Domain size", "[int8_domain]")
+{
+  uint8_domain domain;
+  domain.clear();
+  REQUIRE(domain.size() == 0);
+  unsigned expected_size = 0;
+  const auto all_values = std::views::iota(unsigned(uint8_domain::MIN_VALUE), unsigned(uint8_domain::MAX_VALUE)+1) ;
+  const auto is_even = [](auto val) { return val % 2 == 0; };
+  for (unsigned even: all_values | std::views::filter(is_even)) {
+    domain.insert(static_cast<uint8_t>(even));
+    ++expected_size;
+    REQUIRE(domain.size() == expected_size);
+  }
+  const auto is_odd = [](auto val) { return val % 2 == 1; };
+  for (unsigned odd: all_values | std::views::filter(is_odd)) {
+    domain.insert(static_cast<uint8_t>(odd));
+    ++expected_size;
+    REQUIRE(domain.size() == expected_size);
+  }
 }

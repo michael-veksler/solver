@@ -70,6 +70,7 @@ TEST_CASE("Domain equality", "[binary_domain]")
 TEST_CASE("Domain insertion", "[binary_domain]")
 {
   binary_domain entry = empty;
+  REQUIRE(entry.size() == 0);
   entry.insert(false);
   REQUIRE(entry == zero);
   entry.insert(false);
@@ -85,6 +86,7 @@ TEST_CASE("Domain insertion", "[binary_domain]")
   entry.insert(true);
   REQUIRE(entry == one);
   entry.insert(false);
+  REQUIRE(entry.size() == 2);
   REQUIRE(entry == binary_domain());
 }
 
@@ -119,12 +121,16 @@ TEST_CASE("Domain assignment", "[binary_domain]")
 {
   REQUIRE((zero == binary_domain(false) && one == binary_domain(true)));
   binary_domain domain;
+  REQUIRE(domain.size() == 2);
   domain = false;
   REQUIRE(domain == zero);
+  REQUIRE(domain.size() == 1);
   domain = true;
   REQUIRE(domain == one);
+  REQUIRE(domain.size() == 1);
   domain = false;
   REQUIRE(domain == zero);
+  REQUIRE(domain.size() == 1);
 }
 
 TEST_CASE("to_string", "[binary_domain]")
