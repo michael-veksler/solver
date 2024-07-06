@@ -5,7 +5,6 @@
 #include <optional>
 #include <solver/cdcl_sat.hpp>
 #include <solver/binary_domain.hpp>
-#include <unistd.h>
 
 namespace solver {
 
