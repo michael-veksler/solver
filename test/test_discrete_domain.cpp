@@ -61,7 +61,7 @@ TEST_CASE("Universal domain", "[int8_domain]")
 
 TEST_CASE("Empty domain", "[int8_domain]")
 {
-  REQUIRE(empty.size() == 0);
+  REQUIRE(empty.size() == 0);  // NOLINT(readability-container-size-empty)
   REQUIRE(!empty.is_universal());
   REQUIRE(!empty.is_singleton());
   REQUIRE(empty.empty());
@@ -70,7 +70,7 @@ TEST_CASE("Empty domain", "[int8_domain]")
   REQUIRE(!empty.contains(uint8_domain::MAX_VALUE));
 }
 
-TEST_CASE("Zero domain", "[int8_domain]")
+TEST_CASE("Zero domain", "[int8_domain]")  // NOLINT(readability-function-cognitive-complexity)
 {
   REQUIRE(zero.size() == 1);
   REQUIRE(!zero.is_universal());
@@ -80,7 +80,7 @@ TEST_CASE("Zero domain", "[int8_domain]")
   REQUIRE((min(zero) == 0 && max(zero) == 0 && get_value(zero) == 0));
 }
 
-TEST_CASE("One domain", "[int8_domain]")
+TEST_CASE("One domain", "[int8_domain]")  // NOLINT(readability-function-cognitive-complexity)
 {
   REQUIRE(one.size() == 1);
   REQUIRE(!one.is_universal());

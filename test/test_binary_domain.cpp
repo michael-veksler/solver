@@ -70,7 +70,7 @@ TEST_CASE("Domain equality", "[binary_domain]")
 TEST_CASE("Domain insertion", "[binary_domain]")
 {
   binary_domain entry = empty;
-  REQUIRE(entry.size() == 0);
+  REQUIRE(entry.size() == 0);  // NOLINT(readability-container-size-empty)
   entry.insert(false);
   REQUIRE(entry == zero);
   entry.insert(false);
@@ -117,7 +117,7 @@ TEST_CASE("Domain backward iteration", "[binary_domain]")
   REQUIRE_THAT(get_reverse(universal), Equals(std::vector{ true, false }));
 }
 
-TEST_CASE("Domain assignment", "[binary_domain]")
+TEST_CASE("Domain assignment", "[binary_domain]") // NOLINT(readability-function-cognitive-complexity)
 {
   REQUIRE((zero == binary_domain(false) && one == binary_domain(true)));
   binary_domain domain;
