@@ -3,15 +3,10 @@
 #include "solver/sat_types.hpp"
 #include "solver/trivial_sat.hpp"
 #include <CLI/CLI.hpp>
-#include <array>
 #include <fmt/core.h>
 #include <fmt/format.h>
 #include <fstream>
-#include <functional>
-#include <iostream>
 #include <map>
-#include <optional>
-#include <ranges>
 #include <solver/dimacs_parser.hpp>
 #include <spdlog/spdlog.h>
 

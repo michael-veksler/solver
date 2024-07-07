@@ -2,15 +2,12 @@
 #define CDCL_SAT_IMPL_HPP
 
 #include "solver/cdcl_sat_class.hpp"
-#include "solver/cdcl_sat_clause_class.hpp"
-#include "solver/domain_utils.hpp"
 #include "solver/sat_types.hpp"
 #include <boost/numeric/conversion/cast.hpp>
 #include <functional>
 #include <solver/solver_library_export.hpp>
 #include <solver/state_saver.hpp>
 
-#include <map>
 
 #include "spdlog/spdlog.h"
 

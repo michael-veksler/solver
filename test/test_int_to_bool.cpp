@@ -13,7 +13,7 @@
 using namespace solver;
 using namespace solver::testing;
 
-class random_binary_domain_strategy
+class random_binary_domain_strategy  // NOLINT(cert-msc32-c,cert-msc51-cpp)
 {
 public:
     using domain_type = binary_domain;
@@ -70,7 +70,7 @@ TEST_CASE("Empty set domain", "[int_to_bool]")
     using strategy = domain_strategy<binary_domain>;
     cdcl_sat<strategy> solver;
     int_to_bool_vars<uint8_t, strategy> convertor(&solver);
-    [[maybe_unused]] auto _ = convertor.add_var(discrete_domain<uint8_t>(std::initializer_list<uint8_t>{}));
+    [[maybe_unused]] auto variable_ = convertor.add_var(discrete_domain<uint8_t>(std::initializer_list<uint8_t>{}));
     REQUIRE(solver.solve() == solve_status::UNSAT);
 }
 
@@ -87,7 +87,7 @@ TEST_CASE("single value domain", "[int_to_bool]")
 }
 
 
-TEST_CASE("multi value domain", "[int_to_bool]")
+TEST_CASE("multi value domain", "[int_to_bool]")  // NOLINT(readability-function-cognitive-complexity)
 {
     using domain_type =discrete_domain<uint8_t>;
     using value_type = domain_type::value_type;
