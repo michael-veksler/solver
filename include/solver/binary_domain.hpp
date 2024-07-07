@@ -5,11 +5,8 @@
 #include <solver/solver_library_export.hpp>
 
 #include <cassert>
-#include <cinttypes>
 #include <iterator>
 #include <solver/domain_utils.hpp>
-#include <string>
-#include <vector>
 
 namespace solver {
 
@@ -21,6 +18,7 @@ public:
   static constexpr bool MIN_VALUE = false;
   static constexpr bool MAX_VALUE = true;
   using value_type = bool;
+  using size_type = uint32_t;
   constexpr binary_domain() = default;
   using iterator = binary_domain_iterator;
   explicit constexpr binary_domain(bool value) : m_zero(!value), m_one(value) {}
@@ -35,6 +33,7 @@ public:
   [[nodiscard]] constexpr bool is_singleton() const { return m_one != m_zero; }
   [[nodiscard]] iterator begin() const;
   [[nodiscard]] iterator end() const;
+  [[nodiscard]] size_type size() const { return m_zero + m_one;}
   constexpr void clear() { m_zero = m_one = 0; }
   constexpr void erase(bool value)
   {

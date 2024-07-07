@@ -17,11 +17,13 @@
 namespace solver {
 
 template<typename T>
-concept cdcl_sat_strategy = requires(T value) {
+concept cdcl_sat_strategy = requires(T strategy, typename T::domain_type domain) {
                               typename T::domain_type;
                               requires domain_concept<typename T::domain_type>;
                               typename T::literal_index_t;
                               requires std::is_integral_v<typename T::literal_index_t>;
+                              { strategy.choose_value(domain) } -> std::same_as<typename T::domain_type::value_type>;
+                              { strategy.first_var_to_choose(std::declval<std::optional<typename T::literal_index_t>>()) } -> std::same_as<typename T::literal_index_t>;
                             };
 
 
@@ -38,6 +40,11 @@ template<typename DomainType> struct domain_strategy
 {
   using domain_type = DomainType;
   using literal_index_t = uint32_t;
+  [[nodiscard]] static typename DomainType::value_type choose_value(const DomainType &domain)
+  {
+    return min(domain);
+  }
+  [[nodiscard]] static constexpr literal_index_t first_var_to_choose(std::optional<literal_index_t> prev_var) { return prev_var.value_or(1); }
 };
 
 
@@ -85,6 +92,7 @@ public:
   [[nodiscard]] bool get_variable_value(variable_handle var) const { return get_value(m_domains[var]); }
 
   [[nodiscard]] size_t count_variables() const { return m_domains.size(); }
+  [[nodiscard]] Strategy & get_strategy() { return m_strategy; }
 
   [[nodiscard]] const domain_type &get_current_domain(variable_handle var) const { return m_domains[var]; }
   /**
@@ -279,6 +287,7 @@ private:
   void validate_all_singletons() const;
 
   uint64_t m_max_backtracks;
+  Strategy m_strategy;
   bool m_debug = false;
   bool m_inside_solve = false;
 

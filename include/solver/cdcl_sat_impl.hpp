@@ -2,15 +2,12 @@
 #define CDCL_SAT_IMPL_HPP
 
 #include "solver/cdcl_sat_class.hpp"
-#include "solver/cdcl_sat_clause_class.hpp"
-#include "solver/domain_utils.hpp"
 #include "solver/sat_types.hpp"
 #include <boost/numeric/conversion/cast.hpp>
 #include <functional>
 #include <solver/solver_library_export.hpp>
 #include <solver/state_saver.hpp>
 
-#include <map>
 
 #include "spdlog/spdlog.h"
 
@@ -158,15 +155,15 @@ auto cdcl_sat<Strategy>::find_free_var(variable_handle search_start) const -> st
 
 template<cdcl_sat_strategy Strategy> bool cdcl_sat<Strategy>::make_choice()
 {
-  const std::optional<variable_handle> chosen =
-    m_chosen_vars.empty() ? find_free_var(1) : find_free_var(m_chosen_vars.back());
+  const std::optional<variable_handle> prev_chosen_var(m_chosen_vars.empty() ? std::optional<variable_handle>{} : m_chosen_vars.back());
+  const std::optional<variable_handle> chosen = find_free_var(m_strategy.first_var_to_choose(prev_chosen_var));
 
   if (!chosen) {
     log_info(*this, "Nothing to choose");
     return false;
   }
   m_chosen_vars.push_back(*chosen);
-  set_domain(*chosen, domain_type(false), implication::DECISION);
+  set_domain(*chosen, domain_type(m_strategy.choose_value(m_domains[*chosen])), implication::DECISION);
   assert(m_implications[*chosen].level == get_level());
   return true;
 }

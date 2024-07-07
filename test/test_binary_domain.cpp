@@ -24,11 +24,11 @@ static constexpr binary_domain universal;
 
 TEST_CASE("Universal domain", "[binary_domain]")
 {
-  REQUIRE(binary_domain().is_universal());
-  REQUIRE(!binary_domain().is_singleton());
-  REQUIRE(!binary_domain().empty());
-  REQUIRE((binary_domain().contains(true) && binary_domain().contains(false)));
-  REQUIRE((min(binary_domain()) == false && max(binary_domain()) == true));
+  REQUIRE(universal.is_universal());
+  REQUIRE(!universal.is_singleton());
+  REQUIRE(!universal.empty());
+  REQUIRE((universal.contains(true) && universal.contains(false)));
+  REQUIRE((min(universal) == false && max(universal) == true));
 }
 
 
@@ -61,31 +61,33 @@ TEST_CASE("One domain", "[binary_domain]")
 
 TEST_CASE("Domain equality", "[binary_domain]")
 {
-  REQUIRE((empty != zero && empty != one && empty != binary_domain() && empty == empty));
-  REQUIRE((zero != one && zero != binary_domain() && zero == zero));
-  REQUIRE((one != binary_domain() && one == one));
-  REQUIRE(binary_domain() == binary_domain());
+  REQUIRE((empty != zero && empty != one && empty != universal && empty == empty));
+  REQUIRE((zero != one && zero != universal && zero == zero));
+  REQUIRE((one != universal && one == one));
+  REQUIRE(universal == universal);
 }
 
 TEST_CASE("Domain insertion", "[binary_domain]")
 {
   binary_domain entry = empty;
+  REQUIRE(entry.size() == 0);  // NOLINT(readability-container-size-empty)
   entry.insert(false);
   REQUIRE(entry == zero);
   entry.insert(false);
   REQUIRE(entry == zero);
 
   entry.insert(true);
-  REQUIRE(entry == binary_domain());
+  REQUIRE(entry == universal);
   entry.insert(true);
   entry.insert(false);
-  REQUIRE(entry == binary_domain());
+  REQUIRE(entry == universal);
 
   entry = empty;
   entry.insert(true);
   REQUIRE(entry == one);
   entry.insert(false);
-  REQUIRE(entry == binary_domain());
+  REQUIRE(entry.size() == 2);
+  REQUIRE(entry == universal);
 }
 
 TEST_CASE("Domain forward iteration", "[binary_domain]")
@@ -115,16 +117,20 @@ TEST_CASE("Domain backward iteration", "[binary_domain]")
   REQUIRE_THAT(get_reverse(universal), Equals(std::vector{ true, false }));
 }
 
-TEST_CASE("Domain assignment", "[binary_domain]")
+TEST_CASE("Domain assignment", "[binary_domain]") // NOLINT(readability-function-cognitive-complexity)
 {
   REQUIRE((zero == binary_domain(false) && one == binary_domain(true)));
   binary_domain domain;
+  REQUIRE(domain.size() == 2);
   domain = false;
   REQUIRE(domain == zero);
+  REQUIRE(domain.size() == 1);
   domain = true;
   REQUIRE(domain == one);
+  REQUIRE(domain.size() == 1);
   domain = false;
   REQUIRE(domain == zero);
+  REQUIRE(domain.size() == 1);
 }
 
 TEST_CASE("to_string", "[binary_domain]")

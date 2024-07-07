@@ -9,8 +9,6 @@
 #include <iterator>
 #include <numeric>
 #include <random>
-#include <ranges>
-#include <span>
 #include <vector>
 
 using namespace solver;
@@ -50,18 +48,20 @@ static void
 // NOLINTNEXTLINE(readability-function-cognitive-complexity,cert-err58-cpp)
 TEST_CASE("Universal domain", "[int8_domain]")
 {
-  REQUIRE(uint8_domain().is_universal());
-  REQUIRE(!uint8_domain().is_singleton());
-  REQUIRE(!uint8_domain().empty());
+  REQUIRE(universal.size() == uint8_domain::MAX_VALUE - uint8_domain::MIN_VALUE + 1);
+  REQUIRE(universal.is_universal());
+  REQUIRE(!universal.is_singleton());
+  REQUIRE(!universal.empty());
   REQUIRE(
-    (uint8_domain().contains(1) && uint8_domain().contains(0) && uint8_domain().contains(uint8_domain::MAX_VALUE)));
-  REQUIRE((min(uint8_domain()) == 0 && max(uint8_domain()) == uint8_domain::MAX_VALUE));
-  REQUIRE(!uint8_domain().contains(std::numeric_limits<uint8_t>::max()));
+    (universal.contains(1) && universal.contains(0) && universal.contains(uint8_domain::MAX_VALUE)));
+  REQUIRE((min(universal) == 0 && max(universal) == uint8_domain::MAX_VALUE));
+  REQUIRE(!universal.contains(std::numeric_limits<uint8_t>::max()));
 }
 
 
 TEST_CASE("Empty domain", "[int8_domain]")
 {
+  REQUIRE(empty.size() == 0);  // NOLINT(readability-container-size-empty)
   REQUIRE(!empty.is_universal());
   REQUIRE(!empty.is_singleton());
   REQUIRE(empty.empty());
@@ -70,8 +70,9 @@ TEST_CASE("Empty domain", "[int8_domain]")
   REQUIRE(!empty.contains(uint8_domain::MAX_VALUE));
 }
 
-TEST_CASE("Zero domain", "[int8_domain]")
+TEST_CASE("Zero domain", "[int8_domain]")  // NOLINT(readability-function-cognitive-complexity)
 {
+  REQUIRE(zero.size() == 1);
   REQUIRE(!zero.is_universal());
   REQUIRE(zero.is_singleton());
   REQUIRE(!zero.empty());
@@ -79,8 +80,9 @@ TEST_CASE("Zero domain", "[int8_domain]")
   REQUIRE((min(zero) == 0 && max(zero) == 0 && get_value(zero) == 0));
 }
 
-TEST_CASE("One domain", "[int8_domain]")
+TEST_CASE("One domain", "[int8_domain]")  // NOLINT(readability-function-cognitive-complexity)
 {
+  REQUIRE(one.size() == 1);
   REQUIRE(!one.is_universal());
   REQUIRE(one.is_singleton());
   REQUIRE(!one.empty());
@@ -91,6 +93,7 @@ TEST_CASE("One domain", "[int8_domain]")
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
 TEST_CASE("Biggest domain", "[int8_domain]")
 {
+  REQUIRE(biggest.size() == 1);
   REQUIRE(!biggest.is_universal());
   REQUIRE(biggest.is_singleton());
   REQUIRE(!biggest.empty());
@@ -102,10 +105,10 @@ TEST_CASE("Biggest domain", "[int8_domain]")
 
 TEST_CASE("Domain equality", "[int8_domain]")
 {
-  REQUIRE((empty != zero && empty != one && empty != uint8_domain() && empty == empty));
-  REQUIRE((zero != one && zero != uint8_domain() && zero == zero));
-  REQUIRE((one != uint8_domain() && one == one && biggest == biggest));
-  REQUIRE(uint8_domain() == uint8_domain());
+  REQUIRE((empty != zero && empty != one && empty != universal && empty == empty));
+  REQUIRE((zero != one && zero != universal && zero == zero));
+  REQUIRE((one != universal && one == one && biggest == biggest));
+  REQUIRE(universal == universal);
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
@@ -121,11 +124,11 @@ TEST_CASE("Domain insertion", "[int8_domain]")
   REQUIRE_THAT(std::vector<uint8_t>(entry.begin(), entry.end()), Equals(std::vector<uint8_t>{ 0, 1 }));
   entry.insert(uint8_domain::MAX_VALUE);
   REQUIRE_THAT(std::vector(entry.begin(), entry.end()), Equals(std::vector<uint8_t>{ 0, 1, uint8_domain::MAX_VALUE }));
-  REQUIRE(entry != uint8_domain());
+  REQUIRE(entry != universal);
   domain_shuffled_insert(entry, uint8_full, 2);
   entry.insert(1);
   entry.insert(0);
-  REQUIRE(entry == uint8_domain());
+  REQUIRE(entry == universal);
 
   entry = empty;
   entry.insert(1);
@@ -135,9 +138,9 @@ TEST_CASE("Domain insertion", "[int8_domain]")
   entry.insert(0);
   domain_shuffled_insert(entry, uint8_full, 3);// NOLINT(cert-msc32-c,cert-msc51-cpp)
 
-  REQUIRE(entry == uint8_domain());
+  REQUIRE(entry == universal);
   REQUIRE_THROWS_AS(entry = std::numeric_limits<uint8_t>::max(), std::invalid_argument);
-  REQUIRE(entry == uint8_domain());
+  REQUIRE(entry == universal);
 }
 
 TEST_CASE("Domain forward iteration", "[int8_domain]")
@@ -215,4 +218,22 @@ TEST_CASE("fmt::format", "[int8_domain]")
   REQUIRE(fmt::format("{}", universal) == "{*}");
   REQUIRE(fmt::format("{}", uint8_domain{ 0, 254 }) == "{0, 254}");
   REQUIRE(fmt::format("{}", uint8_domain{ 2, 1, 254 }) == "{1, 2, 254}");
+}
+
+TEST_CASE("Domain size", "[int8_domain]")
+{
+  uint8_domain domain;
+  domain.clear();
+  REQUIRE(domain.size() == 0); // NOLINT(*-*container-size-empty)
+  unsigned expected_size = 0;
+  for (unsigned even = 0; even <= uint8_domain::MAX_VALUE ; even += 2) {
+    domain.insert(static_cast<uint8_t>(even));
+    ++expected_size;
+    REQUIRE(domain.size() == expected_size);
+  }
+  for (unsigned odd = 1; odd <= uint8_domain::MAX_VALUE ; odd += 2) {
+    domain.insert(static_cast<uint8_t>(odd));
+    ++expected_size;
+    REQUIRE(domain.size() == expected_size);
+  }
 }
