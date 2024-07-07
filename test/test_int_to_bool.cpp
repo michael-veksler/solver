@@ -1,6 +1,8 @@
 #include "solver/discrete_domain.hpp"
 #include "solver/int_to_bool_vars.hpp"
 #include "solver/sat_types.hpp"
+#include <catch2/matchers/catch_matchers.hpp>
+#include <catch2/matchers/catch_matchers_exception.hpp>
 #include <cstdint>
 #include <random>
 #include <solver/cdcl_sat.hpp>
@@ -12,6 +14,9 @@
 
 using namespace solver;
 using namespace solver::testing;
+using Catch::Matchers::Equals;
+using Catch::Matchers::MessageMatches;
+using Catch::CaseSensitive;
 
 class random_binary_domain_strategy
 {
@@ -72,7 +77,7 @@ TEST_CASE("Empty set domain", "[int_to_bool]")
     using strategy = domain_strategy<binary_domain>;
     cdcl_sat<strategy> solver;
     int_to_bool_vars<uint8_t, strategy> convertor(&solver);
-    [[maybe_unused]] auto variable_ = convertor.add_var(discrete_domain<uint8_t>(std::initializer_list<uint8_t>{}));
+    [[maybe_unused]] auto variable = convertor.add_var(discrete_domain<uint8_t>(std::initializer_list<uint8_t>{}));
     REQUIRE(solver.solve() == solve_status::UNSAT);
 }
 
@@ -123,5 +128,29 @@ TEST_CASE("multi value domain", "[int_to_bool]")  // NOLINT(readability-function
         REQUIRE(counts[value] >= lb_count);
         REQUIRE(counts[value] <= ub_count);
     }
+
+}
+
+TEST_CASE("get_value failures", "[int_to_bool]")
+{
+    using domain_type =discrete_domain<uint8_t>;
+    const domain_type multi_value_domain = {0, 1, 2, 10, 11, domain_type::MAX_VALUE};
+    const domain_type universal_domain;
+    const domain_type empty_domain{std::initializer_list<uint8_t>{}};
+
+    using strategy = domain_strategy<binary_domain>;
+    cdcl_sat<strategy> solver;
+    int_to_bool_vars<uint8_t, strategy> convertor(&solver);
+    const auto multi_value_variable = convertor.add_var(multi_value_domain);
+    const auto universal_variable = convertor.add_var(universal_domain);
+    const auto empty_variable = convertor.add_var(empty_domain);
+
+    REQUIRE(convertor.get_current_domain<domain_type>(multi_value_variable) == multi_value_domain);
+    REQUIRE_THROWS_MATCHES(convertor.get_value(multi_value_variable), std::runtime_error, MessageMatches(Equals("Multiple values", CaseSensitive::No)));
+    REQUIRE(convertor.get_current_domain<domain_type>(universal_variable) == universal_domain);
+    REQUIRE_THROWS_MATCHES(convertor.get_value(universal_variable), std::runtime_error, MessageMatches(Equals("Multiple values", CaseSensitive::No)));
+    REQUIRE(convertor.get_current_domain<domain_type>(empty_variable) == empty_domain);
+    REQUIRE_THROWS_MATCHES(convertor.get_value(empty_variable), std::runtime_error, MessageMatches(Equals("No value", CaseSensitive::No)));
+
 
 }

@@ -5,11 +5,8 @@
 #include <solver/solver_library_export.hpp>
 
 #include <cassert>
-#include <cinttypes>
 #include <iterator>
 #include <solver/domain_utils.hpp>
-#include <string>
-#include <vector>
 
 namespace solver {
 

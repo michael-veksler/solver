@@ -44,7 +44,7 @@ public:
         Domain ret;
         ret.clear();
         for (auto & [value, vars]: m_vars.at(var)) {
-            if (m_solver->get_variable_value(vars.one_hot_variable)) {
+            if (m_solver->get_current_domain(vars.one_hot_variable).contains(1)) {
                 ret.insert(value);
             }
         }
